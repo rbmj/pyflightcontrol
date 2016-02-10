@@ -1,0 +1,6 @@
+SDA/SCL: Servo Multiplexer/Atmospherics/Pitot
+TXD/RXD: XBee
+PWM0: ESC
+USB0: GPS
+USB1: FTDI->IMU
+USB2: HackRF
