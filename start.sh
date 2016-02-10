@@ -3,10 +3,11 @@
 . services
 
 launch () {
-    ( $1 & ) 0<&- 2> error.log > out.log &
+    dir=`dirname $0`
+    ( $dir/$1.py & ) 0<&- 2> $dir/$1.error.log > $dir/$1.out.log &
 }
 
 for s in $SERVICES
 do
-    launch $(dirname $0)/$s
+    launch $s
 done
