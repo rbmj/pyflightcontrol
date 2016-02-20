@@ -32,7 +32,7 @@ daqThread = threading.Thread(doDAQ)
 def handleRequest(srv, sock):
     pass
 
-srv = SelectServer(ports.daq, handleRequest)
+srv = SelectServer(ports.tcpPort(ports.tcp['daq']), handleRequest)
 
 while True:
     srv.run()
