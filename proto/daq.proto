@@ -1,0 +1,75 @@
+package dolos;
+
+message daq_measurement {
+    required float n_x = 1;
+    required float n_y = 2;
+    required float n_z = 3;
+    required float p = 4;
+    required float q = 5;
+    required float r = 6;
+    required float v_inf = 7;
+    required float h = 8;
+}
+
+message state_vars {
+    required float n_x = 1;
+    required float n_y = 2;
+    required float n_z = 3;
+    required float e_0 = 4;
+    required float e_x = 5;
+    required float e_y = 6;
+    required float e_z = 7;
+    required float v_inf = 8;
+    required float h = 9;
+    required float x = 10;
+    required float y = 11;
+    required float p = 12;
+    required float q = 13;
+    required float r = 14;
+}
+
+message actuation_vars {
+    required float d_a = 1;
+    required float d_e = 2;
+    required float d_r = 3;
+    required float motor_pwr = 4;
+}
+
+message aircraft_state {
+    required state_vars ac_state = 1;
+    required actuation_vars control_state = 2;
+}
+
+message setpoint {
+    required float n_z = 1;
+    required float n_x = 2;
+    required float q = 3;
+    required float motor_pwr = 4;
+}
+
+message location {
+    required double lat = 1;
+    required double lon = 2;
+    required float alt = 3;
+}
+
+message heartbeat {
+    required int32 epoch_low = 1;
+    required int32 epoch_hi = 2;
+    required int32 millis = 3;
+}
+
+message jam_ctl {
+    required bool state = 1;
+    optional float freq = 2;
+}
+
+message control_packet {
+    required heartbeat hb = 1;
+    optional setpoint input = 2;
+    optional actuation_vars direct = 3;
+    optional location autopilot_loc = 4;
+    optional jam_ctl jammer_cmd = 5;
+}
+
+
