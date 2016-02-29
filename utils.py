@@ -1,5 +1,7 @@
 import struct
 import threading
+import time
+from proto import dolos_pb2
 
 def readBuffer(protobuf, sock):
     msg = sock.read(2)
@@ -18,7 +20,7 @@ def sendClose(sock):
     sock.write(bytes('\xff\xff', 'latin_1'))
 
 def heartbeat_create():
-    hb = proto.dolos_pb2.heartbeat()
+    hb = dolos_pb2.heartbeat()
     tm = time.time()
     epoch = int(tm)
     hb.millis = int(tm*1000) % 1000
@@ -31,16 +33,18 @@ def heartbeat_gettime(hb):
     frac = float(hb.millis)/1000
     return epoch+frac
 
+class Shim(object):
+    pass
 
-class LockedWrapper(object):
+class LockedWrapper(Shim):
     def __init__(self, wrapped):
-        self.wrapped = wrapped
-        self.lock = threading.Lock()
+        super(Shim, self).__setattr__('wrapped', wrapped)
+        super(Shim, self).__setattr__('lock', threading.Lock())
     
     def __getattr__(self, attr):
         with self.lock:
-            getattr(self.wrapped, attr)
+            return getattr(self.wrapped, attr)
 
     def __setattr__(self, attr, value):
         with self.lock:
-            setattr(self.wrapped, attr, value)
+            return self.wrapped.__setattr__(attr, value)
