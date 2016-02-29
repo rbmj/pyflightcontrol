@@ -72,4 +72,7 @@ message control_packet {
     optional jam_ctl jammer_cmd = 5;
 }
 
-
+message actuation_packet {
+    optional actuation_vars direct = 1;
+    optional setpoint input = 2;
+}

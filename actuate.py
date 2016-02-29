@@ -50,37 +50,27 @@ state = State()
 
 def handleRequest(srv, sock):
     try:
-        acstate = dolos_pb2.actuation_vars()
+        acstate = dolos_pb2.actuation_packet()
         if utils.readBuffer(acstate, sock) is None:
             srv.closeConnection(srv, sock)
             return
-        state.setvars(acstate.d_a, acstate.d_e, acstate.d_r, acstate.motor_pwr)
-    except:
-        srv.closeConnection(srv, sock)
-
-def handlePollRequest(srv, sock):
-    try:
-        msg = sock.recv(2)
-        if msg[0] == 0xFF and msg[1] == 0xFF:
-            srv.closeConnection(srv, sock)
-            return
-        acstate = dolos_pb2.actuation_vars()
-        (a, e, r, m) = state.get()
-        acstate.d_a = a
-        acstate.d_e = e
-        acstate.d_r = r
-        acstate.motor_pwr = m
-        utils.sendBuffer(acstate, sock)
+        if acstate.HasField('direct'):
+            state.setvars(acstate.direct.d_a,
+                          acstate.direct.d_e,
+                          acstate.direct.d_r,
+                          acstate.motor_pwr)
+        else:
+            accurvals = dolos_pb2.actuation_vars()
+            (a, e, r, m) = state.get()
+            accurvals.d_a = a
+            accurvals.d_e = e
+            accurvals.d_r = r
+            accurvals.motor_pwr = m
+            utils.sendBuffer(accurvals, sock)
     except:
         srv.closeConnection(srv, sock)
 
 srv = SelectServer(ports.tcpPort(ports.tcp['actuate']), handleRequest)
-srvpoll = SelectServer(ports.tcpPort(ports.tcp['actuate_poll']), handlePollRequest)
 
-def runServer(arg):
-    while True:
-        arg.run()
-
-pollthread = threading.Thread(target=runServer, args=(srvpoll,))
-pollthread.start()
-runServer(srv)
+while True:
+    srv.run()

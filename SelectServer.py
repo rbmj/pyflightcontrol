@@ -23,7 +23,7 @@ class SelectServer(object):
                 client,_ = self.sock.accept()
                 self.inset.append(client)
             else:
-                self.action(self, s)
+                self.action(self, s.makefile())
 
     def closeConnection(self, sock):
         self.inset.remove(sock)

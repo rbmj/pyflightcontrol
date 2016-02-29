@@ -7,7 +7,6 @@ tcp = {
     'c3': '127.0.0.1:16003',
     'jamming': '127.0.0.1:16004',
     'control': '127.0.0.1:16005',
-    'actuate_poll': '127.0.0.1:16006'
 }
 
 def tcpPort(name):
@@ -15,6 +14,10 @@ def tcpPort(name):
 
 def tcpHost(name):
     return tcp[name].split(':')[0]
+
+def tcpTuple(name):
+    x = tcp[name].split(':')
+    return (x[0], int(x[1]))
 
 # Maestro Servo Channels
 servo = {
