@@ -20,13 +20,16 @@ sock.connect(ports.tcpTuple('actuate'))
 sockf = sock.makefile()
 
 while True:
-    try:
-        pkt = dolos_pb2.control_packet()
+#    try:
+        pkt = proto.dolos_pb2.control_packet()
         if utils.readBuffer(pkt, ser) is None:
             print('Error reading!')
         if pkt.HasField('direct'):
-            acpkt = dolos_pb2.actuation_packet()
-            acpkt.direct = pkt.direct
-            sendBuffer(acpkt, sockf)
-    except:
-        print('Error')
+            acpkt = proto.dolos_pb2.actuation_packet()
+            acpkt.direct.d_a = pkt.direct.d_a
+            acpkt.direct.d_e = pkt.direct.d_e
+            acpkt.direct.d_r = pkt.direct.d_r
+            acpkt.direct.motor_pwr = pkt.direct.motor_pwr
+            utils.sendBuffer(acpkt, sockf)
+#    except Exception as e:
+#        print(e)
