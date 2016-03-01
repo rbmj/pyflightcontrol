@@ -45,7 +45,8 @@ class State(object):
             self.ctrl.setTarget(ports.servo['aileron_l'], getPWM(-self.aileron))
             self.ctrl.setTarget(ports.servo['elevator'], getPWM(self.elevator))
             self.ctrl.setTarget(ports.servo['rudder'], getPWM(self.rudder))
-
+        print('SETPOINT Da {} De {} Dr {}'.format(
+                self.aileron, self.elevator, self.rudder))
 state = State()
 
 def handleRequest(srv, sock):
