@@ -45,8 +45,7 @@ def serialWriteBuffer(protobuf, ser):
 def sendClose(sock):
     sock.sendall(bytes('\xff\xff', 'latin_1'))
 
-def heartbeat_create():
-    hb = dolos_pb2.heartbeat()
+def heartbeat(hb):
     tm = time.time()
     epoch = int(tm)
     hb.millis = int(tm*1000) % 1000
