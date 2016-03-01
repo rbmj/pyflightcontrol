@@ -19,8 +19,7 @@ def sendBuffer(protobuf, sock):
 def sendClose(sock):
     sock.write(bytes('\xff\xff', 'latin_1'))
 
-def heartbeat_create():
-    hb = dolos_pb2.heartbeat()
+def heartbeat(hb):
     tm = time.time()
     epoch = int(tm)
     hb.millis = int(tm*1000) % 1000

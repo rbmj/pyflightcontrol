@@ -26,15 +26,12 @@ state = utils.LockedWrapper(State())
 def runClient():
     ser = serial.Serial(dev, baudrate=9600)
     while True:
-        av = proto.dolos_pb2.actuation_vars()
-        av.d_a = state.aileron
-        av.d_e = state.elevator
-        av.d_r = state.rudder
-        av.motor_pwr = state.motor
-        hb = utils.heartbeat_create()
         pkt = proto.dolos_pb2.control_packet()
-        pkt.direct = av
-        pkt.hb = hb
+        pkt.direct.d_a = state.aileron
+        pkt.direct.d_e = state.elevator
+        pkt.direct.d_r = state.rudder
+        pkt.direct.motor_pwr = state.motor
+        utils.heartbeat(pkt.hb)
         utils.sendBuffer(pkt, ser)
         time.sleep(0.1)
 
