@@ -50,7 +50,7 @@ while True:
             state.elevator = float(cmd[1])
             continue
         if cmd[0] == 'rudder':
-            state.elevator = float(cmd[1])
+            state.rudder = float(cmd[1])
             continue
         if cmd[1] == 'motor':
             state.motor = float(cmd[1])
