@@ -6,8 +6,7 @@ import socket
 import serial
 from usb import core
 
-# TODO: Stream resync on magic number 0xd0105acf
-
+# TODO: Stream resync on magic number 
 # Get XBee Device File - for SparkFun XBee Explorer
 # This could be done less cruftily
 snum = core.find(idVendor=0x0403, idProduct=0x6015).serial_number
@@ -32,7 +31,7 @@ def runClient():
         pkt.direct.d_r = state.rudder
         pkt.direct.motor_pwr = state.motor
         utils.heartbeat(pkt.hb)
-        utils.sendBuffer(pkt, ser)
+        utils.serialWriteBuffer(pkt, ser)
         time.sleep(0.1)
 
 clientThread = threading.Thread(target=runClient)

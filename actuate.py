@@ -45,14 +45,15 @@ class State(object):
             self.ctrl.setTarget(ports.servo['aileron_l'], getPWM(-self.aileron))
             self.ctrl.setTarget(ports.servo['elevator'], getPWM(self.elevator))
             self.ctrl.setTarget(ports.servo['rudder'], getPWM(self.rudder))
-
+        print('SETPOINT Da {} De {} Dr {}'.format(
+                self.aileron, self.elevator, self.rudder))
 state = State()
 
 def handleRequest(srv, sock):
     try:
         acstate = dolos_pb2.actuation_packet()
         if utils.readBuffer(acstate, sock) is None:
-            srv.closeConnection(srv, sock)
+            srv.closeConnection(sock)
             return
         if acstate.HasField('direct'):
             state.setvars(acstate.direct.d_a,
@@ -68,9 +69,9 @@ def handleRequest(srv, sock):
             accurvals.motor_pwr = m
             utils.sendBuffer(accurvals, sock)
     except:
-        srv.closeConnection(srv, sock)
+        srv.closeConnection(sock)
 
-srv = SelectServer(ports.tcpPort(ports.tcp['actuate']), handleRequest)
+srv = SelectServer(ports.tcpPort('actuate'), handleRequest)
 
 while True:
     srv.run()

@@ -3,21 +3,46 @@ import threading
 import time
 from proto import dolos_pb2
 
+def sock_recvall(sock, l):
+    data = ''
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data += packet
+    return data
+
 def readBuffer(protobuf, sock):
-    msg = sock.read(2)
+    msg = sock_recvall(sock, 2)
     if msg[0] == 0xFF and msg[1] == 0xFF:
         return None
     l = struct.unpack('!H', msg)[0]
-    msg = sock.read(l)
+    msg = sock_recvall(sock, l)
     return protobuf.ParseFromString(msg)
 
 def sendBuffer(protobuf, sock):
     msg = protobuf.SerializeToString()
     l = struct.pack('!H', len(msg))
-    sock.write(l+msg)
+    sock.sendall(l+msg)
+
+serialMagic = struct.pack('!I', 0xd0105acf)
+
+def serialReadBuffer(protobuf, ser):
+    # Stream resynchronization
+    buf = 'AAAA'.encode('ascii')
+    while buf != serialMagic:
+        buf = buf[1:] + ser.read(1)
+    # Read length
+    l = struct.unpack('!H', ser.read(2))[0]
+    buf = ser.read(l)
+    return protobuf.ParseFromString(buf)
+
+def serialWriteBuffer(protobuf, ser):
+    msg = protobuf.SerializeToString()
+    ser.write(serialMagic + struct.pack('!H', len(msg)) + msg)
 
 def sendClose(sock):
-    sock.write(bytes('\xff\xff', 'latin_1'))
+    sock.sendall(bytes('\xff\xff', 'latin_1'))
 
 def heartbeat(hb):
     tm = time.time()
