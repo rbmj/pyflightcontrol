@@ -23,7 +23,8 @@ class SelectServer(object):
                 client,_ = self.sock.accept()
                 self.inset.append(client)
             else:
-                self.action(self, s.makefile(mode='rwb'))
+                if self.action(self, s):
+                    self.closeConnection(s)
 
     def closeConnection(self, sock):
         try:

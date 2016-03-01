@@ -17,17 +17,17 @@ ser = serial.Serial(dev, baudrate=9600)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect(ports.tcpTuple('actuate'))
-sockf = sock.makefile(mode='rwb')
 
 while True:
     try:
         pkt = proto.dolos_pb2.control_packet()
+        utils.serialReadBuffer(pkt, ser)
         if pkt.HasField('direct'):
             acpkt = proto.dolos_pb2.actuation_packet()
             acpkt.direct.d_a = pkt.direct.d_a
             acpkt.direct.d_e = pkt.direct.d_e
             acpkt.direct.d_r = pkt.direct.d_r
             acpkt.direct.motor_pwr = pkt.direct.motor_pwr
-            utils.sendBuffer(acpkt, sockf)
+            utils.sendBuffer(acpkt, sock)
     except Exception as e:
         print(e)
