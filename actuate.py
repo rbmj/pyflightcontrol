@@ -34,7 +34,7 @@ class State(object):
     def setvars(self, a, e, r, m):
         with self.lock:
             self.aileron = a
-            self.elecator = e
+            self.elevator = e
             self.rudder = r
             self.motor = m
         self._doSet()
@@ -45,31 +45,34 @@ class State(object):
             self.ctrl.setTarget(ports.servo['aileron_l'], getPWM(-self.aileron))
             self.ctrl.setTarget(ports.servo['elevator'], getPWM(self.elevator))
             self.ctrl.setTarget(ports.servo['rudder'], getPWM(self.rudder))
-        print('SETPOINT Da {} De {} Dr {}'.format(
-                self.aileron, self.elevator, self.rudder))
+            print('SETPOINT Da {} De {} Dr {}'.format(
+                    self.aileron, self.elevator, self.rudder))
 state = State()
 
 def handleRequest(srv, sock):
-    try:
-        acstate = dolos_pb2.actuation_packet()
+#    try:
+        acstate = proto.dolos_pb2.actuation_packet()
         if utils.readBuffer(acstate, sock) is None:
+            print('Read Failure')
             srv.closeConnection(sock)
             return
         if acstate.HasField('direct'):
+            print('Received direct control packet')
             state.setvars(acstate.direct.d_a,
                           acstate.direct.d_e,
                           acstate.direct.d_r,
-                          acstate.motor_pwr)
+                          acstate.direct.motor_pwr)
         else:
-            accurvals = dolos_pb2.actuation_vars()
+            accurvals = proto.dolos_pb2.actuation_vars()
             (a, e, r, m) = state.get()
             accurvals.d_a = a
             accurvals.d_e = e
             accurvals.d_r = r
             accurvals.motor_pwr = m
             utils.sendBuffer(accurvals, sock)
-    except:
-        srv.closeConnection(sock)
+#    except Exception as e:
+#        print(e)
+#        srv.closeConnection(sock)
 
 srv = SelectServer(ports.tcpPort('actuate'), handleRequest)
 
