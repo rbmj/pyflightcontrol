@@ -3,8 +3,8 @@ import threading
 import time
 from proto import dolos_pb2
 
-def sock_recvall(sock, l):
-    data = ''
+def sock_recvall(sock, n):
+    data = bytes()
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
@@ -18,7 +18,8 @@ def readBuffer(protobuf, sock):
         return None
     l = struct.unpack('!H', msg)[0]
     msg = sock_recvall(sock, l)
-    return protobuf.ParseFromString(msg)
+    protobuf.ParseFromString(msg)
+    return True
 
 def sendBuffer(protobuf, sock):
     msg = protobuf.SerializeToString()
