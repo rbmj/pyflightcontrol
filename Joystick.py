@@ -62,8 +62,8 @@ class Joystick(object):
             return [x for x in zip(names, axes)]
         return axes
 
-    @staticmethod
-    def autodetect():
+    @classmethod
+    def autodetect(cls):
         out = {}
         devs = [evdev.InputDevice(d) for d in evdev.util.list_devices()]
         caps = [d.capabilities(verbose=False, absinfo=False) for d in devs]
@@ -71,9 +71,9 @@ class Joystick(object):
         axes = [len(c.get(evdev.ecodes.EV_ABS, [])) for c in caps]
         data = [x for x in zip(devs, caps, btns, axes)]
         sticks = filter(lambda x: x[3] >= 3 and x[2] > 1, data)
-        out['stick'] = [Joystick(x[0]) for x in sticks]
+        out['stick'] = [cls(x[0]) for x in sticks]
         rudders = filter(lambda x: x[3] >= 1 and x[2] == 0, data)
-        out['rudder'] = [Joystick(x[0]) for x in rudders]
+        out['rudder'] = [cls(x[0]) for x in rudders]
         return out
 
 
