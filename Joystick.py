@@ -76,17 +76,4 @@ class Joystick(object):
         out['rudder'] = [Joystick(x[0]) for x in rudders]
         return out
 
-#@asyncio.coroutine
-#def event_loop():
-#    while True:
-#        print('{}:{}:{}'.format(
-#            axes[evdev.ecodes.ABS_X],
-#            axes[evdev.ecodes.ABS_Y],
-#            axes[evdev.ecodes.ABS_Z]))
-#        yield from asyncio.sleep(0.25)
-#
-#asyncio.async(event_loop())
-#
-#loop = asyncio.get_event_loop()
-#loop.run_forever()
 

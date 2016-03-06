@@ -4,7 +4,9 @@ import utils
 import threading
 import socket
 import serial
+import asyncio
 from usb import core
+from Joystick import Joystick
 
 # TODO: Stream resync on magic number 
 # Get XBee Device File - for SparkFun XBee Explorer
@@ -13,48 +15,25 @@ snum = core.find(idVendor=0x0403, idProduct=0x6015).serial_number
 prod = 'FTDI_FT231X_USB_UART'
 dev = '/dev/serial/by-id/usb-{}_{}-if00-port0'.format(prod, snum)
 
-class State(object):
-    def __init__(self):
-        self.aileron = 0.0
-        self.elevator = 0.0
-        self.rudder = 0.0
-        self.motor = 0.0
+devs = Joystick.autodetect()
+stick = devs['stick'][0]
+rudder = devs['rudder'][0]
+stick.register()
+rudder.register()
 
-state = utils.LockedWrapper(State())
-
-def runClient():
+@asyncio.coroutine
+def main_loop():
     ser = serial.Serial(dev, baudrate=9600)
     while True:
         pkt = proto.dolos_pb2.control_packet()
-        pkt.direct.d_a = state.aileron
-        pkt.direct.d_e = state.elevator
-        pkt.direct.d_r = state.rudder
-        pkt.direct.motor_pwr = state.motor
+        pkt.direct.d_a = stick.getX()
+        pkt.direct.d_e = stick.getY()
+        pkt.direct.d_r = rudder.getX()
+        pkt.direct.motor_pwr = stick.getZ()
         utils.heartbeat(pkt.hb)
         utils.serialWriteBuffer(pkt, ser)
-        time.sleep(0.1)
+        yield from asyncio.sleep(0.1)
 
-clientThread = threading.Thread(target=runClient)
-clientThread.start()
-
-while True:
-    cmd = input("> ").split()
-    if len(cmd) != 2:
-        print('Bad Syntax (CMD ARG)')
-        continue
-    try:
-        if cmd[0] == 'aileron':
-            state.aileron = float(cmd[1])
-            continue
-        if cmd[0] == 'elevator':
-            state.elevator = float(cmd[1])
-            continue
-        if cmd[0] == 'rudder':
-            state.rudder = float(cmd[1])
-            continue
-        if cmd[1] == 'motor':
-            state.motor = float(cmd[1])
-            continue
-        print('Bad Command')
-    except:
-        print('Error')
+asyncio.async(main_loop)
+loop = asyncio.get_event_loop()
+loop.run_forever()
