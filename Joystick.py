@@ -10,34 +10,38 @@ class Joystick(object):
         self._axes = {}
         self._buttons = {}
         self._handlers = {}
+        for btn in self.enumerateButtons(resolve=False):
+            self._buttons[btn] = 0
+        for ax in self.enumerateAxes(resolve=False):
+            self._axes[ax] = 0.0
 
     @asyncio.coroutine
     def _pump(self):
         while True:
             events = yield from self._dev.async_read()
             for event in events:
-                if event.type == ecodes.EV_ABS:
+                if event.type == evdev.ecodes.EV_ABS:
                     self._axes[event.code] = event.value
-                elif event.type == evdev.EV_KEY:
+                elif event.type == evdev.ecodes.EV_KEY:
                     self._buttons[event.code] = event.value
                     h = self._handlers.get(event.value)
                     if h:
                         h()
 
     def register(self):
-        asyncio.async(self._pump())
+        return asyncio.async(self._pump())
 
     def addButtonHandler(self, h, code):
         self._handlers[code] = h
 
     def getX(self):
-        return self._axes[ecodes.ABS_X]
+        return self._axes[evdev.ecodes.ABS_X]
 
     def getY(self):
-        return self._axes[ecodes.ABS_Y]
+        return self._axes[evdev.ecodes.ABS_Y]
 
     def getZ(self):
-        return self._axes[ecodes.ABS_Z]
+        return self._axes[evdev.ecodes.ABS_Z]
 
     def getAxis(self, code):
         return self._axes[code]
@@ -47,18 +51,24 @@ class Joystick(object):
     
     def enumerateButtons(self, resolve=True):
         cap = self._dev.capabilities(verbose=False, absinfo=False)
-        btns = cap[ecodes.EV_KEY]
+        try:
+            btns = cap[evdev.ecodes.EV_KEY]
+        except KeyError:
+            return []
         if resolve:
             names = [name if isinstance(name, str) else name[-1]
-                        for name in (ecodes.BTN[x] for x in btns)]
+                        for name in (evdev.ecodes.BTN[x] for x in btns)]
             return [x for x in zip(names, btns)]
         return btns
 
     def enumerateAxes(self, resolve=True):
         cap = self._dev.capabilities(verbose=False, absinfo=False)
-        axes = cap[ecodes.EV_ABS]
+        try:
+            axes = cap[evdev.ecodes.EV_ABS]
+        except KeyError:
+            return []
         if resolve:
-            names = [ecodes.ABS[x] for x in axes]
+            names = [evdev.ecodes.ABS[x] for x in axes]
             return [x for x in zip(names, axes)]
         return axes
 
