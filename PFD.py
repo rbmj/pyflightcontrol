@@ -60,42 +60,54 @@ class PFD(object):
         self._scalefactor = width/self._widthfov
         self._pitchlines = []
         major = True
-        majorwidth = 25*math.tan(15*math.pi/180)
+        majorwidth = 0.25*self._widthfov
         minorwidth = 0.75*majorwidth
         for p in range(-90, 91, 5):
             width = majorwidth
             if not major:
                 width = minorwidth
-            start = _makecoord(-majorwidth, p)
-            stop = _makecoord(majorwidth, p)
+            start = _makecoord(-width, p)
+            stop = _makecoord(width, p)
             self._pitchlines.append((start, stop))
             major = not major
-        self._horizon = (_makecoord(-self._widthfov/2, 0),
-                         _makecoord(self._widthfov/2, 0))
+        self._horizon = (_makecoord(-self._widthfov, 0),
+                         _makecoord(self._widthfov, 0))
+
+    def _drawpitchline(self, xform, surf, i, pitchcolor):
+        (start, end) = self._pitchlines[i]
+        start = xform*start
+        end = xform*end
+        start = (_rnd(start.item(0)*self._scalefactor + self._width/2),
+                 _rnd(self._height/2 - start.item(1)*self._scalefactor))
+        end = (_rnd(end.item(0)*self._scalefactor + self._width/2),
+               _rnd(self._height/2 - end.item(1)*self._scalefactor))
+        pygame.draw.line(surf, pitchcolor, start, end)
 
     def render(self, pitch, roll):
         surf = pygame.Surface((self._width, self._height))
         # Artificial horizon colors
         skycolor = (10, 112, 184)
         groundcolor = (223, 131, 3)
+        referencecolor = (255, 255, 0)
+        pitchcolor = (255, 255, 255)
         # Make artificial horizon transform matrix
         transform = _makeroll(roll)*_makepitch(pitch)
 
         # Transform points and determine intersections
         horizon = _eqnline(transform*self._horizon[0],
                 transform*self._horizon[1])
-        xinter = [_intercept_at_x(horizon, -self._widthfov),
-                  _intercept_at_x(horizon, self._widthfov)]
-        yinter = [_intercept_at_y(horizon, -self._heightfov),
-                  _intercept_at_y(horizon, self._heightfov)]
+        xinter = [_intercept_at_x(horizon, -self._widthfov/2),
+                  _intercept_at_x(horizon, self._widthfov/2)]
+        yinter = [_intercept_at_y(horizon, -self._heightfov/2),
+                  _intercept_at_y(horizon, self._heightfov/2)]
 
         # Remove non-existent intersections
         xinter = filter(lambda x: x is not None, xinter)
         yinter = filter(lambda x: x is not None, yinter)
 
         # Determine if intersections are within the window bounds
-        xinter = filter(lambda p: abs(p.item(1)) < self._heightfov, xinter)
-        yinter = filter(lambda p: abs(p.item(0)) < self._widthfov, yinter)
+        xinter = filter(lambda p: abs(p.item(1)) < self._heightfov/2, xinter)
+        yinter = filter(lambda p: abs(p.item(0)) < self._widthfov/2, yinter)
 
         # Find intersection points in pixel space
         xinter = [(_sgnmatch(self._width, p.item(0)),
@@ -107,6 +119,7 @@ class PFD(object):
         intersect = list(intersect)
 
         # Get corner coordinates and determine which are +/- pitch
+        # FIXME:  This breaks near the corners
         pts = [_makecoord(-self._widthfov/2, -self._heightfov/2),
                _makecoord(-self._widthfov/2, self._heightfov/2),
                _makecoord(self._widthfov/2, self._heightfov/2),
@@ -126,10 +139,38 @@ class PFD(object):
         sortkey = lambda x: _gettheta(x, -self._width/2, -self._height/2)
         pts_pos.sort(key=sortkey)
         pts_neg.sort(key=sortkey)
+        
         # Draw artificial horizon
         if len(pts_pos) > 2:
             pygame.draw.polygon(surf, skycolor, pts_pos)
         if len(pts_neg) > 2:
             pygame.draw.polygon(surf, groundcolor, pts_neg)
+        if len(intersect) == 2:
+            pygame.draw.line(surf, pitchcolor, intersect[0],
+                    intersect[1], 3)
+        
+        # Draw Pitch Lines
+        nearest_pitch = 5*_rnd(pitch/5)
+        pitchline_index = (nearest_pitch + 90)//5
+        rng = range(pitchline_index - 5, pitchline_index + 6)
+        rng = filter(lambda x: x >= 0 and x < len(self._pitchlines), rng)
+        for i in rng:
+            self._drawpitchline(transform, surf, i, pitchcolor)
+        
+        # Draw Aircraft Attitude Reference
+        arrow_width = self._width/10
+        arrow_height = self._width/15
+        pygame.draw.polygon(surf, referencecolor, [
+            (self._width/2, self._height/2),
+            (self._width/2 - arrow_width, self._height/2 + arrow_height),
+            (self._width/2 + arrow_width, self._height/2 + arrow_height)])
+        pygame.draw.line(surf, referencecolor,
+            (self._width/2 - 3*arrow_width, self._height/2),
+            (self._width/2 - 1.5*arrow_width, self._height/2), 5)
+        pygame.draw.line(surf, referencecolor,
+            (self._width/2 + 3*arrow_width, self._height/2),
+            (self._width/2 + 1.5*arrow_width, self._height/2), 5)
+    
+        
         return surf
 

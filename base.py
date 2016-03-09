@@ -27,7 +27,7 @@ actions.append(stick.register())
 actions.append(rudder.register())
 
 pygame.init()
-screensz = 320
+screensz = 640
 screen = pygame.display.set_mode((screensz, screensz))
 pfd = PFD(screensz, screensz)
 
@@ -45,9 +45,8 @@ def main_loop():
         pkt.direct.motor_pwr = stick.getZ()
         utils.heartbeat(pkt.hb)
         utils.serialWriteBuffer(pkt, ser)
-        pitch = (stick.getY()*180.0/256 - 90)
+        pitch = stick.getY()*180.0/256 - 90
         roll = stick.getX()*180.0/256 - 90
-        print('setting to {}:{}'.format(pitch, roll))
         surf = pfd.render(pitch, roll)
         screen.blit(surf, (0, 0))
         pygame.display.flip()
@@ -55,7 +54,6 @@ def main_loop():
 
 actions.append(asyncio.async(main_loop()))
 loop = asyncio.get_event_loop()
-
 try:
     loop.run_forever()
 finally:
