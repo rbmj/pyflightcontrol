@@ -15,7 +15,7 @@ enc = 'latin_1' # raw convert code point to bytes
 # These functions provide access to many of the Maestro's capabilities using the
 # Pololu serial protocol
 #
-class Controller:
+class Maestro:
     # When connected via USB, the Maestro creates two virtual serial ports
     # /dev/ttyACM0 for commands and /dev/ttyACM1 for communications.
     # Be sure the Maestro is configured for "USB Dual Port" serial mode.

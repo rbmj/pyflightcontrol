@@ -1,7 +1,6 @@
 import struct
 import threading
 import time
-from proto import dolos_pb2
 
 def sock_recvall(sock, n):
     data = bytes()

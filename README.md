@@ -1,6 +1,13 @@
 pyflightcontrol
 ===============
 
+Dependencies:
+ - Python >= 3.4
+ - Google Protocol Buffers & Python Bindings
+ - pygame
+ - pyusb
+ - pyevdev
+
 Random Notes/Gotchas:
  - The Maestro needs to be set up before use!
    - Go to Maestro Control Center
