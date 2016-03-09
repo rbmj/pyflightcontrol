@@ -7,7 +7,6 @@ import asyncio
 import pygame
 from usb import core
 from .PFD import PFD
-
 import signal
 
 @asyncio.coroutine

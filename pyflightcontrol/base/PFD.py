@@ -1,6 +1,7 @@
 import pygame
 import math
 import numpy
+from .font import getfont_mono
 
 def _rnd(x):
     return int(round(x))
@@ -72,6 +73,10 @@ class PFD(object):
             major = not major
         self._horizon = (_makecoord(-self._widthfov, 0),
                          _makecoord(self._widthfov, 0))
+        # Font notes: width is ~60% of size, height is ~114% of size
+        self._font = pygame.font.Font(getfont_mono(), 10)
+        self._fontsize = self._font.size('a')
+        
 
     def _drawpitchline(self, xform, surf, i, pitchcolor):
         (start, end) = self._pitchlines[i]
