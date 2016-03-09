@@ -1,6 +1,10 @@
 pyflightcontrol
 ===============
 
+License:  This project is licensed under the Apache License, version
+2.0 (see LICENSE.md).  Font resources are included with the project
+under the terms of the SIL Open Font License (see LICENSE.FONT.md).
+
 Dependencies:
  - Python >= 3.4
  - Google Protocol Buffers & Python Bindings
