@@ -1,7 +1,7 @@
 import pygame
 import math
 import numpy
-from .font import getfont_mono
+from .font import text
 
 def _rnd(x):
     return int(round(x))
@@ -60,6 +60,7 @@ class PFD(object):
         self._heightfov = (height/width)*self._widthfov
         self._scalefactor = width/self._widthfov
         self._pitchlines = []
+        self._pitchtextsz = self._width // 50
         major = True
         majorwidth = 0.25*self._widthfov
         minorwidth = 0.75*majorwidth
@@ -69,24 +70,29 @@ class PFD(object):
                 width = minorwidth
             start = _makecoord(-width, p)
             stop = _makecoord(width, p)
-            self._pitchlines.append((start, stop))
+            txtmark = _makecoord(width*1.1, p)
+            self._pitchlines.append((start, stop, p, txtmark))
             major = not major
         self._horizon = (_makecoord(-self._widthfov, 0),
                          _makecoord(self._widthfov, 0))
-        # Font notes: width is ~60% of size, height is ~114% of size
-        self._font = pygame.font.Font(getfont_mono(), 10)
-        self._fontsize = self._font.size('a')
-        
 
-    def _drawpitchline(self, xform, surf, i, pitchcolor):
-        (start, end) = self._pitchlines[i]
+    def _drawpitchline(self, xform, surf, i, pitchcolor, roll):
+        (start, end, p, txtl) = self._pitchlines[i]
+        if p == 0:
+            return
         start = xform*start
         end = xform*end
+        txtl = xform*txtl
         start = (_rnd(start.item(0)*self._scalefactor + self._width/2),
                  _rnd(self._height/2 - start.item(1)*self._scalefactor))
         end = (_rnd(end.item(0)*self._scalefactor + self._width/2),
                _rnd(self._height/2 - end.item(1)*self._scalefactor))
+        txtl = (_rnd(txtl.item(0)*self._scalefactor + self._width/2),
+               _rnd(self._height/2 - txtl.item(1)*self._scalefactor))
         pygame.draw.line(surf, pitchcolor, start, end)
+        pfx = '+' if p > 0 else '-'
+        x = text(pfx+str(abs(p)), pitchcolor, self._pitchtextsz, roll)
+        x.blitTo(surf, txtl)
 
     def render(self, pitch, roll):
         surf = pygame.Surface((self._width, self._height))
@@ -160,7 +166,7 @@ class PFD(object):
         rng = range(pitchline_index - 5, pitchline_index + 6)
         rng = filter(lambda x: x >= 0 and x < len(self._pitchlines), rng)
         for i in rng:
-            self._drawpitchline(transform, surf, i, pitchcolor)
+            self._drawpitchline(transform, surf, i, pitchcolor, roll)
         
         # Draw Aircraft Attitude Reference
         arrow_width = self._width/10
