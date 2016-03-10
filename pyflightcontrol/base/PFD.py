@@ -1,7 +1,8 @@
 import pygame
+import pygame.freetype
 import math
 import numpy
-from .font import text
+from .font import getfont_mono
 
 def _rnd(x):
     return int(round(x))
@@ -59,6 +60,11 @@ class PFD(object):
         self._widthfov = 60.0
         self._heightfov = (height/width)*self._widthfov
         self._scalefactor = width/self._widthfov
+        self._fontobj = pygame.freetype.Font(getfont_mono())
+        self._init_attitude()
+        self._init_compass()
+        
+    def _init_attitude(self):
         self._pitchlines = []
         self._pitchtextsz = self._width // 50
         major = True
@@ -76,6 +82,40 @@ class PFD(object):
         self._horizon = (_makecoord(-self._widthfov, 0),
                          _makecoord(self._widthfov, 0))
 
+    def _init_compass(self):
+        self._compassfov = 70.0
+        self._compasswidth = self._width*0.6
+        self._compassscale = self._compasswidth / self._compassfov
+        self._compasswidth_s = (360+self._compassfov*2)*self._compassscale
+        self._compasswidth_s = int(self._compasswidth_s)
+        self._compassheight = int(self._width*0.08)
+        self._compass = pygame.Surface((self._compasswidth_s,
+                self._compassheight), pygame.SRCALPHA)
+        self._compass.fill((0, 0, 0, 128))
+        h_maj = int(self._compassheight*0.2)
+        h_min = int(self._compassheight*0.1)
+        for i in range(-40, 360+40):
+            offset = self._compassscale*(self._compassfov+i)
+            b = 360 if i == 0 else i % 360
+            h = 0
+            if b % 10 == 0:
+                h = h_maj
+            elif b % 5 == 0:
+                h = h_min
+            if h != 0:
+                pygame.draw.line(self._compass, (255,255,255,255),
+                        (offset, 0), (offset, h))
+                pygame.draw.line(self._compass, (255,255,255,255),
+                        (offset, self._compassheight - h),
+                        (offset, self._compassheight))
+            if b % 30 == 0:
+                txt = '{:02d}'.format(b // 10)
+                (txt_surf, txt_rect) = self._fontobj.render(txt,
+                        (255,255,255), size=int(self._compassheight*0.5))
+                h_offset = int((self._compassheight - txt_rect.height)/2)
+                x_offset = offset - int(txt_rect.width/2)
+                self._compass.blit(txt_surf, (x_offset, h_offset))
+    
     def _drawpitchline(self, xform, surf, i, pitchcolor, roll):
         (start, end, p, txtl) = self._pitchlines[i]
         if p == 0:
@@ -91,11 +131,29 @@ class PFD(object):
                _rnd(self._height/2 - txtl.item(1)*self._scalefactor))
         pygame.draw.line(surf, pitchcolor, start, end)
         pfx = '+' if p > 0 else '-'
-        x = text(pfx+str(abs(p)), pitchcolor, self._pitchtextsz, roll)
-        x.blitTo(surf, txtl)
+        txt = pfx + str(abs(p))
+        self._fontobj.render_to(surf, txtl, txt, pitchcolor,
+                rotation=int(roll), size=self._pitchtextsz)
 
-    def render(self, pitch, roll):
+    def render(self, brng, pitch, roll):
         surf = pygame.Surface((self._width, self._height))
+        self._render_horizon(surf, pitch, roll)
+        self._render_compass(surf, brng)
+        return surf
+
+    def _render_compass(self, surf, brng):
+        y_offset = int(self._height - 1.5*self._compassheight)
+        x_offset = int((self._width - self._compasswidth) / 2)
+        b_offset = int(self._compassscale*(0.5*self._compassfov+brng))
+        surf.blit(self._compass, (x_offset, y_offset),
+                area=pygame.Rect(b_offset, 0,
+                self._compasswidth, self._compassheight))
+        rect = pygame.Rect(x_offset - 2, y_offset - 2,
+                self._compasswidth + 2, self._compassheight + 2)
+        pygame.draw.rect(surf, (255,255,255), rect, 2)
+
+        
+    def _render_horizon(self, surf, pitch, roll):
         # Artificial horizon colors
         skycolor = (10, 112, 184)
         groundcolor = (223, 131, 3)
@@ -181,7 +239,4 @@ class PFD(object):
         pygame.draw.line(surf, referencecolor,
             (self._width/2 + 3*arrow_width, self._height/2),
             (self._width/2 + 1.5*arrow_width, self._height/2), 5)
-    
-        
-        return surf
 

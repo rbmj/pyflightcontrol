@@ -36,7 +36,7 @@ def main_loop(stick, rudder):
         pfc.util.serialWriteBuffer(pkt, ser)
         pitch = stick.getY()*180.0/256 - 90
         roll = stick.getX()*180.0/256 - 90
-        surf = pfd.render(pitch, roll)
+        surf = pfd.render(0, pitch, roll)
         screen.blit(surf, (0, 0))
         pygame.display.flip()
         yield from asyncio.sleep(0.1)
