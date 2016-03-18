@@ -1,6 +1,7 @@
 import pyflightcontrol as pfc
 import pygame
 import time
+import random
 from .PFD import PFD
 
 def main_loop():
@@ -11,8 +12,13 @@ def main_loop():
     pfd = PFD(screensz, screensz)
     pitch = 0
     roll = 0
-    brng = 0
+    brng = 60
     while True:
+        brng = (brng - 1)
+        brng = brng + random.gauss(0, 1)
+        brng = brng % 360
+        roll = roll + random.gauss(0, 0.25)
+        pitch = pitch + random.gauss(0, 0.25)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 raise

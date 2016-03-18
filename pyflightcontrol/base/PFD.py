@@ -96,7 +96,9 @@ class PFD(object):
         h_min = int(self._compassheight*0.1)
         for i in range(-40, 360+40):
             offset = self._compassscale*(self._compassfov+i)
-            b = 360 if i == 0 else i % 360
+            b = i % 360
+            if b == 0:
+                b = 360
             h = 0
             if b % 10 == 0:
                 h = h_maj
