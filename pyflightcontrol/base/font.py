@@ -2,6 +2,7 @@ import sys
 import numpy
 import math
 import pygame
+import pygame.freetype
 from pathlib import Path
 
 def getfont_mono(pathstr=None):
@@ -17,6 +18,11 @@ def getfont_mono(pathstr=None):
             return pathstr
         raise FileNotFoundError()
     return pathstr
+
+def getfont_mono_obj(obj=None):
+    if obj is None:
+        obj = pygame.freetype.Font(getfont_mono())
+    return obj
 
 # Font notes: width is ~60% of size, height is ~114% of size
 fontfile = getfont_mono()
