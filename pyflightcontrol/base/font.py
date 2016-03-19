@@ -4,16 +4,19 @@ import math
 import pygame
 from pathlib import Path
 
-def getfont_mono():
-    d = Path(sys.argv[0]).resolve().parent
-    f = 'liberation_mono.ttf'
-    paths = [d / f,
-             d.parent / 'share' / 'pyflightcontrol' / f,
-             Path('.').resolve() / f]
-    paths = filter(lambda x: x.exists(), paths)
-    for x in paths:
-        return str(x)
-    raise FileNotFoundError()
+def getfont_mono(pathstr=None):
+    if pathstr is None:
+        d = Path(sys.argv[0]).resolve().parent
+        f = 'liberation_mono.ttf'
+        paths = [d / f,
+                 d.parent / 'share' / 'pyflightcontrol' / f,
+                 Path('.').resolve() / f]
+        paths = filter(lambda x: x.exists(), paths)
+        for x in paths:
+            pathstr = str(x)
+            return pathstr
+        raise FileNotFoundError()
+    return pathstr
 
 # Font notes: width is ~60% of size, height is ~114% of size
 fontfile = getfont_mono()
