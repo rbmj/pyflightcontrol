@@ -1,7 +1,7 @@
 import pygame
-from .indicator import Indicator, IndicatorOptions
 from .attitude import AttitudeIndicator
 from .compass import CompassIndicator
+from .airspeed import AirspeedIndicator
 
 class PFD(object):
     def __init__(self, width, height):
@@ -10,12 +10,7 @@ class PFD(object):
         self._attitude = AttitudeIndicator(width, height, 60.0)
         self._compass = CompassIndicator(int(width*0.6), int(height*0.3),
                 70.0)
-        opts = IndicatorOptions(50, 999, 1)
-        opts.addTick(10, 0.2)
-        opts.addTick(5, 0.1)
-        opts.setLabelProperties(10, 0.3, 0.25)
-        self._airspd = Indicator(int(self._width*0.15),
-                int(self._height*0.75), opts)
+        self._airspd = AirspeedIndicator(int(width*0.15), int(height*0.7))
         self._spd = 0.0
 
     def render(self, brng, pitch, roll):
