@@ -16,7 +16,7 @@ class IndicatorOptions(object):
     def __init__(self, fov, indmax, interval, ticks=[], txttick=(0, 0, 0)):
         self.fov = fov
         self.indmax = indmax
-        self.ticks = ticks
+        self.ticks = [x for x in ticks]
         self.txttick = txttick
         self.interval = interval
 
@@ -90,8 +90,8 @@ class Rotor(object):
 class SmallRotor(object):
     def __init__(self, font, fontsize, linespace, mag, wnd, interval):
         # determine digit size
-        (_, rect) = font.render('a', rotorcol, size=fontsize)
-        self._charwidth = rect.width
+        (_, rect) = font.render(str(int(mag//10)), rotorcol, size=fontsize)
+        self._charwidth = int(rect.width*1.1)
         self._charheight = rect.height
         # save variables
         self._font = font
@@ -106,7 +106,8 @@ class SmallRotor(object):
         self._surf.fill((0, 0, 0, 0))
         for i in range(mag//interval + 1):
             num = (i * interval) % mag
-            (t, _) = font.render(str(int(num)), rotorcol, size=fontsize)
+            txt = ('{:0' + str(len(str(mag // 10))) + 'd}').format(num)
+            (t, _) = font.render(txt, rotorcol, size=fontsize)
             centerblit(self._surf, (0, self._get_offset(i*interval, True)), t)
     
     def _get_offset(self, ind, raw=False):
