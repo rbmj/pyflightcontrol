@@ -12,18 +12,14 @@ class PFD(object):
         self._compass = CompassIndicator(int(width*0.6), int(height*0.3),
                 70.0)
         self._airspd = AirspeedIndicator(int(width*0.15), int(height*0.7))
-        self._spd = 0.0
         self._altimeter = AltitudeIndicator(int(width*0.15), int(height*0.7))
-        self._alt = 9800.0
 
-    def render(self, brng, pitch, roll):
-        self._spd = self._spd + 0.1
-        self._alt = self._alt + 2.5
+    def render(self, brng, pitch, roll, spd, alt):
         surf = pygame.Surface((self._width, self._height))
         self._render_attitude(surf, pitch, roll)
         self._render_compass(surf, brng)
-        self._render_airspeed(surf, self._spd)
-        self._render_altitude(surf, self._alt)
+        self._render_airspeed(surf, spd)
+        self._render_altitude(surf, alt)
         return surf
 
     def _render_attitude(self, surf, pitch, roll):
