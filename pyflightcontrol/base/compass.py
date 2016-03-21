@@ -56,9 +56,9 @@ class CompassIndicator(object):
         surf = pygame.Surface((self._width, self._render_height),
                 pygame.SRCALPHA)
         # Colors
-        windowcol = (255, 255, 0)
+        windowcol = (255, 255, 255)
         windowbg = (0, 0, 0)
-        boxcol = (255, 255, 255)
+        boxcol = (128, 128, 128)
         txtcol = (255, 255, 255)
         # Calculate offsets
         y_offset = int(self._render_height - self._height)
@@ -79,8 +79,8 @@ class CompassIndicator(object):
         pygame.draw.line(surf, windowcol, (middle, y_offset),
                 (middle, y_offset + self._height), bord_w)
         # offset coordinates
-        y_offset += self._height // 8
-        y_offset_ind = y_offset - self._height // 3
+        y_offset += self._height // 3
+        y_offset_ind = y_offset - self._height // 4
         # Text
         brng_int = _rnd(brng)
         if brng_int == 0:
@@ -91,19 +91,18 @@ class CompassIndicator(object):
         # Triangle
         pad = 8
         center_offset = txt_rect.width // 2 + pad
+        arrow_offset = self._height // 8
+        boxheight = txt_rect.height + pad*2
         tripoints = [
                 (middle, y_offset),
+                (middle - arrow_offset, y_offset_ind),
                 (middle - center_offset, y_offset_ind),
-                (middle + center_offset, y_offset_ind)]
-        pygame.draw.polygon(surf, windowcol, tripoints)
-        rect = pygame.Rect(middle - txt_rect.width // 2 - pad,
-                           y_offset_ind - txt_rect.height - pad*2,
-                           txt_rect.width + pad*2,
-                           txt_rect.height + pad*2)
-        rect_bord = pygame.Rect(rect)
-        rect_bord.width -= bord_w // 2
-        rect_bord.height -= bord_w // 2
-        pygame.draw.rect(surf, windowbg, rect)
-        surf.blit(txt_surf, (rect.left + pad, rect.top + pad))
-        pygame.draw.rect(surf, windowcol, rect_bord, bord_w)
+                (middle - center_offset, y_offset_ind - boxheight),
+                (middle + center_offset, y_offset_ind - boxheight),
+                (middle + center_offset, y_offset_ind),
+                (middle + arrow_offset, y_offset_ind)]
+        pygame.draw.polygon(surf, windowbg, tripoints)
+        pygame.draw.polygon(surf, windowcol, tripoints, bord_w)
+        surf.blit(txt_surf, (middle - center_offset + pad,
+            y_offset_ind - boxheight + pad))
         return surf
