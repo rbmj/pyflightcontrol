@@ -7,7 +7,7 @@ from .PFD import PFD
 def main_loop():
     # Initialize GUI
     pygame.init()
-    screensz = 640
+    screensz = 720
     screen = pygame.display.set_mode((screensz, screensz))
     pfd = PFD(screensz, screensz)
     pitch = 0
