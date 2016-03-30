@@ -40,3 +40,9 @@ Dependencies:
     $ sudo cp -r /usr/{lib/python2.7,local/lib/python3.4}/dist-packages/gps
     $ sudo 2to3 -w /usr/local/lib/python3.4/dist-packages/gps
     $ sudo pip3 install wiringpi
+
+Connecting to RPi for test (no router):
+
+ - Currently using address 172.16.0.1/24
+ - Configure network with ``sudo ifconfig eth0 <addr> netmask <mask>``
+ - Start DHCP server with ``sudo udhcpd -I <addr>``

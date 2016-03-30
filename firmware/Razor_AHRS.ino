@@ -180,6 +180,7 @@
 #define OUTPUT__MODE_SENSORS_CALIB 2 // Outputs calibrated sensor values for all 9 axes
 #define OUTPUT__MODE_SENSORS_RAW 3 // Outputs raw (uncalibrated) sensor values for all 9 axes
 #define OUTPUT__MODE_SENSORS_BOTH 4 // Outputs calibrated AND raw sensor values for all 9 axes
+#define OUTPUT__MODE_QUAT 5 // Output quaternion and calibrated sensor values for all 9 axes
 // Output format definitions (do not change)
 #define OUTPUT__FORMAT_TEXT 0 // Outputs data as text
 #define OUTPUT__FORMAT_BINARY 1 // Outputs data as binary float
@@ -363,6 +364,12 @@ float yaw;
 float pitch;
 float roll;
 
+// Quaternion
+float e0;
+float ex;
+float ey;
+float ez;
+
 // DCM timing in the main loop
 unsigned long timestamp;
 unsigned long timestamp_old;
@@ -410,6 +417,44 @@ void Euler_angles(void)
   pitch = -asin(DCM_Matrix[2][0]);
   roll = atan2(DCM_Matrix[2][1],DCM_Matrix[2][2]);
   yaw = atan2(DCM_Matrix[1][0],DCM_Matrix[0][0]);
+}
+
+void Quaternion(void)
+{
+    float tr = DCM_Matrix[0][0] + DCM_Matrix[1][1] + DCM_Matrix[2][2];
+    float S;
+    if (tr > 0)
+    {
+        S = sqrt(tr+1)*2;
+        e0 = 0.25*S;
+        ex = (DCM_Matrix[2][1] - DCM_Matrix[1][2]) / S;
+        ey = (DCM_Matrix[0][2] - DCM_Matrix[2][1]) / S;
+        ez = (DCM_Matrix[1][0] - DCM_Matrix[0][1]) / S;
+    }
+    else if ((DCM_Matrix[0][0] > DCM_Matrix[1][1]) && (DCM_Matrix[0][0] > DCM_Matrix[2][2]))
+    {
+        S = sqrt(1 + DCM_Matrix[0][0] - DCM_Matrix[1][1] - DCM_Matrix[2][2])*2;
+        e0 = (DCM_Matrix[2][1] - DCM_Matrix[1][2]) / S;
+        ex = 0.25*S;
+        ey = (DCM_Matrix[0][1] + DCM_Matrix[1][0]) / S;
+        ez = (DCM_Matrix[0][2] + DCM_Matrix[2][0]) / S;
+    }
+    else if (DCM_Matrix[1][1] > DCM_Matrix[2][2])
+    {
+        S = sqrt(1 - DCM_Matrix[0][0] + DCM_Matrix[1][1] - DCM_Matrix[2][2])*2;
+        e0 = (DCM_Matrix[0][2] - DCM_Matrix[2][0]) / S;
+        ex = (DCM_Matrix[0][1] + DCM_Matrix[1][0]) / S;
+        ey = 0.25*S;
+        ez = (DCM_Matrix[1][2] + DCM_Matrix[2][1]) / S;
+    }
+    else
+    {
+        S = sqrt(1 - DCM_Matrix[0][0] - DCM_Matrix[1][1] + DCM_Matrix[2][2])*2;
+        e0 = (DCM_Matrix[1][0] - DCM_Matrix[0][1]) / S;
+        ex = (DCM_Matrix[0][2] + DCM_Matrix[2][0]) / S;
+        ey = (DCM_Matrix[1][2] + DCM_Matrix[2][1]) / S;
+        ez = 0.25*S;
+    }
 }
 
 // Computes the dot product of two vectors
@@ -658,6 +703,27 @@ void output_angles()
     Serial.print(TO_DEG(yaw)); Serial.print(",");
     Serial.print(TO_DEG(pitch)); Serial.print(",");
     Serial.print(TO_DEG(roll)); Serial.println();
+  }
+}
+
+void output_quaternion()
+{
+  if (output_format == OUTPUT__FORMAT_BINARY)
+  {
+    float quat[4];
+    quat[0] = e0;
+    quat[1] = ex;
+    quat[2] = ey;
+    quat[3] = ez;
+    Serial.write((byte*) quat, 16);
+  }
+  else if (output_format == OUTPUT__FORMAT_TEXT)
+  {
+    Serial.print("#QUAT=");
+    Serial.print(e0); Serial.print(",");
+    Serial.print(ex); Serial.print(",");
+    Serial.print(ey); Serial.print(",");
+    Serial.print(ez); Serial.println();
   }
 }
 
@@ -1158,6 +1224,16 @@ void loop()
           else if (format_param == 'b') // Output values in _b_inary format
             output_format = OUTPUT__FORMAT_BINARY;
         }
+        else if (output_param == 'q') // Output _q_uaternions
+        {
+          char format_param = readChar();
+          if (format_param == 't')
+            output_format = OUTPUT__FORMAT_TEXT;
+          else if (format_param == 'b')
+            output_format = OUTPUT__FORMAT_BINARY;
+
+          output_mode = OUTPUT__MODE_QUAT;
+        }
         else if (output_param == '0') // Disable continuous streaming output
         {
           turn_output_stream_off();
@@ -1225,6 +1301,22 @@ void loop()
       Euler_angles();
       
       if (output_stream_on || output_single_on) output_angles();
+    }
+    else if (output_mode == OUTPUT__MODE_QUAT)
+    {
+      compensate_sensor_errors();
+      Compass_Heading();
+      Matrix_update();
+      Normalize();
+      Drift_correction();
+      //Euler_angles();
+      Quaternion();
+      if (output_stream_on || output_single_on) {
+        output_quaternion();
+        output_mode = OUTPUT__MODE_SENSORS_RAW;
+        output_sensors();
+        output_mode = OUTPUT__MODE_QUAT;
+      }
     }
     else  // Output sensor values
     {      

@@ -3,6 +3,7 @@ from usb import core
 import threading
 import serial
 import ports
+import time
 
 imu_dev = (0xfeed, 0xface) # Vendor/Product ID of USB device
 imu_usb = core.find(idVendor=imu_dev[0], idProduct=imu_dev[1])
@@ -15,6 +16,34 @@ imu_serial = serial.Serial(
         bytesize=serial.EIGHTBITS
 )
 
+# Pressure
+P = 2117
+T = 460+50
+
+# Attitude Quaternion
+e0 = 0
+ex = 1
+ey = 0
+ez = 0
+
+# Load Factors
+nx = 0
+ny = 0
+nz = 1
+
+# Gyro
+p = 0
+q = 0
+r = 0
+
+def getIMU():
+    pass
+
+def getAtmos():
+    pass
+
+def getPitot():
+    pass
 
 dataLock = threading.Lock()
 
@@ -23,9 +52,9 @@ def doDAQ():
         dataLock.acquire()
         getIMU()
         getAtmos()
-        getPitot()
+        #getPitot()
         dataLock.release()
-        
+        time.sleep(0.025)
 
 daqThread = threading.Thread(doDAQ)
 

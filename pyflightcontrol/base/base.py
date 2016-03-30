@@ -1,4 +1,5 @@
 import pyflightcontrol as pfc
+import google.protobuf
 import time
 import threading
 import socket
@@ -9,34 +10,47 @@ from usb import core
 from .PFD import PFD
 import signal
 
+rudder_range = 30
+aileron_range = 30
+elevator_range = 30
+
+acstate = pfc.AircraftState
+
+def procpkt(pkt):
+    # process aircraft telemetry data
+
 @asyncio.coroutine
 def main_loop(stick, rudder):
-    # Get XBee Device File - for SparkFun XBee Explorer
-    # This could be done less cruftily
-    snum = core.find(idVendor=0x0403, idProduct=0x6015).serial_number
-    prod = 'FTDI_FT231X_USB_UART'
-    dev = '/dev/serial/by-id/usb-{}_{}-if00-port0'.format(prod, snum)
-    
     # Initialize GUI
     pygame.init()
-    screensz = 640
+    screensz = 1024
     screen = pygame.display.set_mode((screensz, screensz))
     pfd = PFD(screensz, screensz)
-    ser = serial.Serial(dev, baudrate=9600)
+    xbee = pfc.XBee(pfc.XBee.findExplorerDev())
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 raise
         pkt = pfc.proto.control_packet()
-        pkt.direct.d_a = stick.getX()
-        pkt.direct.d_e = stick.getY()
-        pkt.direct.d_r = rudder.getX()
-        pkt.direct.motor_pwr = stick.getZ()
+        pkt.direct.d_a = stick.getX()*2.0*aileron_range/256 - elevator_range
+        pkt.direct.d_e = stick.getY()*2.0*elevator_range/256 - elevator_range
+        pkt.direct.d_r = rudder.getX()*2.0*rudder_range/256 - rudder_range
+        pkt.direct.motor_pwr = stick.getZ()*100.0/256
         pfc.util.heartbeat(pkt.hb)
-        pfc.util.serialWriteBuffer(pkt, ser)
-        pitch = stick.getY()*180.0/256 - 90
-        roll = stick.getX()*180.0/256 - 90
-        surf = pfd.render(0, pitch, roll)
+        # Write Control Packet
+        try:
+            xbee.writePkt(pkt)
+        except IOError as e:
+            print(e)
+        # Read Telemetry Packet, if received
+        try:
+            xbee.readPktAsync(pfc.proto.telemetry_packet, procpkt)
+        except google.protobuf.message.DecodeError as de:
+            print(de)
+        except IOError as ioe:
+            print(ioe)
+        # Render display
+        surf = pfd.render(acstate)
         screen.blit(surf, (0, 0))
         pygame.display.flip()
         yield from asyncio.sleep(0.1)

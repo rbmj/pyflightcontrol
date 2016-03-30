@@ -1,5 +1,24 @@
 package dolos;
 
+message quaternion {
+    required float e0 = 1;
+    required float ex = 2;
+    required float ey = 3;
+    required float ez = 4;
+}
+
+message load_factor {
+    required float nx = 1;
+    required float ny = 2;
+    required float nz = 3;
+}
+
+message angular_rates {
+    required float p = 1;
+    required float q = 2;
+    required float r = 3;
+}
+
 message daq_measurement {
     required float n_x = 1;
     required float n_y = 2;
@@ -11,21 +30,49 @@ message daq_measurement {
     required float h = 8;
 }
 
+message imu_vars {
+    required load_factor load = 1;
+    required angular_rates rates = 2;
+    required quaternion quat = 3;
+}
+
+message atmosphere_vars {
+    required float p = 1;
+    required float T = 2;
+}
+
+message gps_vars {
+    optional float lat = 1;
+    optional float lon = 2;
+    optional float alt = 3;
+    optional float spd = 4;
+    optional float climb = 5;
+    optional float track = 6;
+}
+
+message pitot_vars {
+    required float q = 1;
+    optional float p = 2;
+}
+
+message sensor_measurement {
+    optional imu_vars imu = 1;
+    optional atmosphere_vars atmos = 2;
+    optional gps_vars gps = 3;
+    optional pitot_vars pitot = 4;
+}
+
 message state_vars {
-    required float n_x = 1;
-    required float n_y = 2;
-    required float n_z = 3;
-    required float e_0 = 4;
-    required float e_x = 5;
-    required float e_y = 6;
-    required float e_z = 7;
-    required float v_inf = 8;
-    required float h = 9;
-    required float x = 10;
-    required float y = 11;
-    required float p = 12;
-    required float q = 13;
-    required float r = 14;
+    optional load_factor load = 1;
+    optional quaternion quat = 2;
+    optional angular_rates rates = 3;
+    optional float v_inf = 4;
+    optional float h = 5;
+    optional float x = 6;
+    optional float y = 7;
+    optional float T = 8;
+    optional float p = 9;
+    optional float qnh = 10;
 }
 
 message actuation_vars {
@@ -70,6 +117,10 @@ message control_packet {
     optional actuation_vars direct = 3;
     optional location autopilot_loc = 4;
     optional jam_ctl jammer_cmd = 5;
+}
+
+message telemetry_packet {
+    required hearbeat hb = 1;
 }
 
 message actuation_packet {
