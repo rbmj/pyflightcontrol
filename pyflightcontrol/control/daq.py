@@ -4,6 +4,8 @@ import threading
 import serial
 import ports
 
+from .bme280 import BME280
+
 imu_dev = (0xfeed, 0xface) # Vendor/Product ID of USB device
 imu_usb = core.find(idVendor=imu_dev[0], idProduct=imu_dev[1])
 imu_fname = '/dev/bus/usb/{:03}/{:03}'.format(imu_usb.bus, imu_usb.address)
@@ -15,7 +17,6 @@ imu_serial = serial.Serial(
         bytesize=serial.EIGHTBITS
 )
 
-
 dataLock = threading.Lock()
 
 def doDAQ():
@@ -23,7 +24,7 @@ def doDAQ():
         dataLock.acquire()
         getIMU()
         getAtmos()
-        getPitot()
+        #getPitot()
         dataLock.release()
         
 
