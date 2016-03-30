@@ -1,4 +1,5 @@
 import serial
+from usb import core
 
 enc = 'latin_1' # raw convert code point to bytes
 
@@ -35,6 +36,14 @@ class Maestro:
         # Servo minimum and maximum targets can be restricted to protect components.
         self.Mins = [0] * 24
         self.Maxs = [0] * 24
+
+    @classmethod
+    def createMicro(cls):
+        snum = core.find(idVendor=0x1ffb, idProduct=0x0089).serial_number
+        prod = 'Pololu_Corporation_Pololu_Micro_Maestro_6-Servo_Controller'
+        # if00 is command port, if02 control port
+        dev = '/dev/serial/by-id/usb-{}_{}-if00'.format(prod, snum)
+        return cls(dev)
         
     # Cleanup by closing USB serial port
     def close(self):
