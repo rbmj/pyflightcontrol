@@ -1,3 +1,4 @@
+import pyflightcontrol
 from . import ports
 from . import math
 import serial
