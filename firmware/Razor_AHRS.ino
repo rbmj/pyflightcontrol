@@ -428,7 +428,7 @@ void Quaternion(void)
         S = sqrt(tr+1)*2;
         e0 = 0.25*S;
         ex = (DCM_Matrix[2][1] - DCM_Matrix[1][2]) / S;
-        ey = (DCM_Matrix[0][2] - DCM_Matrix[2][1]) / S;
+        ey = (DCM_Matrix[0][2] - DCM_Matrix[2][0]) / S;
         ez = (DCM_Matrix[1][0] - DCM_Matrix[0][1]) / S;
     }
     else if ((DCM_Matrix[0][0] > DCM_Matrix[1][1]) && (DCM_Matrix[0][0] > DCM_Matrix[2][2]))
