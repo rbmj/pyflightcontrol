@@ -1,13 +1,13 @@
-from .pid import PID
-from .maestro import Maestro
 from .selectserver import SelectServer
-from .joystick import Joystick
 from .xbee import XBee
-from .aircraft import AircraftState
+from .state import AircraftState
 
-from . import base
 from . import proto
-from . import control
+
+# Don't import these as we might not have all the dependencies installed
+# and don't want to load things unnecessarily
+#from . import base
+#from . import aircraft
 
 from . import ports
 from . import util

@@ -10,12 +10,27 @@ class Euler(object):
         return self._vec[0]
 
     @property
+    def roll_d(self):
+        return self.roll*180/math.pi
+
+    @property
     def pitch(self):
         return self._vec[1]
 
     @property
+    def pitch_d(self):
+        return self.pitch*180/math.pi
+
+    @property
     def bearing(self):
         return self._vec[2]
+
+    @property
+    def bearing_d(self):
+        b = self.bearing*180/math.pi
+        if b < 0:
+            return b + 180
+        return b
 
     @property
     def vec(self):
