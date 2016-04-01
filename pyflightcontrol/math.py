@@ -58,6 +58,9 @@ class Quaternion(object):
     def e0(self):
         return self._quat[0]
 
+    def do_set(self, e0, ex, ey, ez):
+        self._quat = numpy.array([e0, ex, ey, ez])
+
     @property
     def conj(self):
         return Quaternion(self.e0, -self.ex, -self.ey, -self.ez)
