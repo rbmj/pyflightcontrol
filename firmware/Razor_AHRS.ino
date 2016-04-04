@@ -284,6 +284,8 @@ const float magn_ellipsoid_transform[3][3] = {{0.902, -0.00354, 0.000636}, {-0.0
 #define DEBUG__NO_DRIFT_CORRECTION false
 // Print elapsed time after each I/O loop
 #define DEBUG__PRINT_LOOP_TIME false
+// Debug quaternion translation information
+#define DEBUG__QUAT true
 
 
 /*****************************************************************/
@@ -365,6 +367,7 @@ float pitch;
 float roll;
 
 // Quaternion
+byte quatMode;
 float e0;
 float ex;
 float ey;
@@ -425,6 +428,7 @@ void Quaternion(void)
     float S;
     if (tr > 0)
     {
+        quatMode = 0;
         S = sqrt(tr+1)*2;
         e0 = 0.25*S;
         ex = (DCM_Matrix[2][1] - DCM_Matrix[1][2]) / S;
@@ -433,6 +437,7 @@ void Quaternion(void)
     }
     else if ((DCM_Matrix[0][0] > DCM_Matrix[1][1]) && (DCM_Matrix[0][0] > DCM_Matrix[2][2]))
     {
+        quatMode = 1;
         S = sqrt(1 + DCM_Matrix[0][0] - DCM_Matrix[1][1] - DCM_Matrix[2][2])*2;
         e0 = (DCM_Matrix[2][1] - DCM_Matrix[1][2]) / S;
         ex = 0.25*S;
@@ -441,6 +446,7 @@ void Quaternion(void)
     }
     else if (DCM_Matrix[1][1] > DCM_Matrix[2][2])
     {
+        quatMode = 2;
         S = sqrt(1 - DCM_Matrix[0][0] + DCM_Matrix[1][1] - DCM_Matrix[2][2])*2;
         e0 = (DCM_Matrix[0][2] - DCM_Matrix[2][0]) / S;
         ex = (DCM_Matrix[0][1] + DCM_Matrix[1][0]) / S;
@@ -449,6 +455,7 @@ void Quaternion(void)
     }
     else
     {
+        quatMode = 3;
         S = sqrt(1 - DCM_Matrix[0][0] - DCM_Matrix[1][1] + DCM_Matrix[2][2])*2;
         e0 = (DCM_Matrix[1][0] - DCM_Matrix[0][1]) / S;
         ex = (DCM_Matrix[0][2] + DCM_Matrix[2][0]) / S;
@@ -710,6 +717,10 @@ void output_quaternion()
 {
   if (output_format == OUTPUT__FORMAT_BINARY)
   {
+    if (DEBUG__QUAT)
+    {
+      Serial.write(&quatMode, 1);
+    }
     float quat[4];
     quat[0] = e0;
     quat[1] = ex;
@@ -719,7 +730,16 @@ void output_quaternion()
   }
   else if (output_format == OUTPUT__FORMAT_TEXT)
   {
-    Serial.print("#QUAT=");
+    if (DEBUG__QUAT)
+    {
+      Serial.print("#QUAT=");
+    }
+    else
+    {
+      Serial.print("#QUAT[");
+      Serial.print(quatMode);
+      Serial.print("]=");
+    }
     Serial.print(e0); Serial.print(",");
     Serial.print(ex); Serial.print(",");
     Serial.print(ey); Serial.print(",");

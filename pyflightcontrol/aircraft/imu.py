@@ -4,6 +4,8 @@ import serial
 import struct
 import time
 
+DEBUG_QUAT = True
+
 class IMU(object):
     def __init__(self, tty):
         self._dev = serial.Serial(tty, 57600)
@@ -16,18 +18,24 @@ class IMU(object):
         self._dev.write(b'#oqb')
         self._dev.write(b'#oqb')
         self._dev.write(b'#oqb')
+        self.sync()
+        self.attitude = pyflightcontrol.math.Quaternion(0, 1, 0, 0)
+        self.accel = [0, 0, 1]
+        self.gyro = [0, 0, 0]
+        self.mag = [0, 0, 0]
+        self._mode = ''
+
+    def sync(self):
         self._dev.write(b'#sxy')
         key = b'#SYNCHxy\r\n'
         buf = b'A'*len(key)
         while buf != key:
             buf = buf[1:] + self._dev.read(1) 
-        self.attitude = pyflightcontrol.math.Quaternion(0, 1, 0, 0)
-        self.accel = [0, 0, 1]
-        self.gyro = [0, 0, 0]
-        self.mag = [0, 0, 0]
 
     def tryUpdate(self):
         if self._dev.inWaiting() > 0:
+            if DEBUG_QUAT:
+                self._mode = ord(self._dev.read(1))
             data = self._dev.read(4*4)
             self.attitude.do_set(*struct.unpack('<ffff', data))
             data = self._dev.read(3*4)
@@ -51,8 +59,8 @@ if __name__ == '__main__':
             pitch = 180/math.pi * attitude.pitch
             roll = 180/math.pi * attitude.roll
             yaw = 180/math.pi * attitude.bearing
-            print('Pitch {:2.3f}\tRoll {:2.3f}\tYaw {:2.3f}'.format(
-                    pitch, roll, yaw))
+            print('{}Pitch {:2.3f}\tRoll {:2.3f}\tYaw {:2.3f}'.format(
+                    imu._mode, pitch, roll, yaw))
             #print('Accel {:2.3f}\t{:2.3f}\t{:2.3f}'.format(*imu.accel))
             #print('Gyro {:2.3f}\t{:2.3f}\t{:2.3f}'.format(*imu.gyro))
             #print('Mag {:2.3f}\t{:2.3f}\t{:2.3f}'.format(*imu.mag))
