@@ -53,6 +53,7 @@ Reconfigure network (/etc/network/interfaces):
         address 172.16.0.2
         netmask 255.255.255.0
         gateway 172.16.0.1
+        dns-nameservers 8.8.8.8
 
 Connecting to RPi:
 -------------------
@@ -60,12 +61,16 @@ Connecting to RPi:
 SSH into the device, username pi password raspberry
 Device is configured to be at IP 172.16.0.2/24 gateway 172.16.0.1
 To connect to it, set your IP address to 172.16.0.1/24 on that interface
+
 To allow internet traffic through your computer from the RPi, execute
-the following on your machine:
+the following on your machine, where ``<INET>`` is the interface with
+internet access and ``<LAN>`` is the interface connected to the RPi:
 
-    sysctl -w net.ipv4.ip_forward=1
-
-Install dependencies.
+    # sysctl -w net.ipv4.ip_forward=1
+    # iptables -t nat -A POSTROUTING -o <INET> -j MASQUERADE
+    # iptables -A FORWARD -i <INET> -o <LAN> -m state \
+      --state RELATED,ESTABLISHED -j ACCEPT
+    # iptables -A FORWARD -i <LAN> -o <INET> -j ACCEPT
 
 
 Dependencies:
