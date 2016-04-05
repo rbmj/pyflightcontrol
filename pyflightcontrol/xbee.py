@@ -21,6 +21,10 @@ class XBee(object):
         prod = 'FTDI_FT231X_USB_UART'
         dev = '/dev/serial/by-id/usb-{}_{}-if00-port0'.format(prod, snum)
         return dev
+
+    @staticmethod
+    def findRPiSerialDev():
+        return '/dev/ttyAMA0'
     
     def __init__(self, dev):
         self._dev = serial.Serial(dev, baud=9600)

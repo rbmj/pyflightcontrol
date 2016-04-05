@@ -286,6 +286,9 @@ class Indicator(object):
                     offset - txt_rect.height // 2, txt_surf)
 
     def render(self, ind):
+        #FIXME: clamp all values to zero
+        if ind < 0:
+            ind = 0.0
         self._value = (self._interpgain*ind + 
                 (1-self._interpgain)*self._value)
         surf = pygame.Surface((self._width, self._height), pygame.SRCALPHA)

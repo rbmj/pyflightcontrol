@@ -49,6 +49,7 @@ Install Dependencies
 
 Reconfigure network (/etc/network/interfaces):
 
+    allow-hotplug eth0
     iface eth0 inet static
         address 172.16.0.2
         netmask 255.255.255.0
@@ -72,7 +73,7 @@ Dependencies:
 --------------
 
     $ sudo aptitude install python3 python3-dev python3-numpy git \
-        python3-serial python3-pip
+        python3-serial python3-pip protobuf-compiler
     $ sudo pip3 install pyusb --pre
     $ sudo aptitude install protobuf-compiler
     $ sudo pip3 install protobuf --pre

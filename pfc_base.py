@@ -1,4 +1,4 @@
-import pyflightcontrol.base.base as base
+import pyflightcontrol.base as base
 import pygame
 
 (loop, actions) = base.get_main_loop()
