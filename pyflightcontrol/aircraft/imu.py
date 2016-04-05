@@ -34,19 +34,22 @@ class IMU(object):
 
     def tryUpdate(self):
         if self._dev.inWaiting() > 0:
-            if DEBUG_QUAT:
-                self._mode = ord(self._dev.read(1))
-            data = self._dev.read(4*4)
-            self.attitude.do_set(*struct.unpack('<ffff', data))
-            data = self._dev.read(3*4)
-            self.accel = list(struct.unpack('<fff', data))
-            data = self._dev.read(3*4)
-            self.mag = list(struct.unpack('<fff', data))
-            data = self._dev.read(3*4)
-            self.gyro = list(struct.unpack('<fff', data))
+            self.update()
             return True
         return False
-    
+
+    def update(self):
+        if DEBUG_QUAT:
+            self._mode = ord(self._dev.read(1))
+        data = self._dev.read(4*4)
+        self.attitude.do_set(*struct.unpack('<ffff', data))
+        data = self._dev.read(3*4)
+        self.accel = list(struct.unpack('<fff', data))
+        data = self._dev.read(3*4)
+        self.mag = list(struct.unpack('<fff', data))
+        data = self._dev.read(3*4)
+        self.gyro = list(struct.unpack('<fff', data))
+ 
     @classmethod
     def create(cls):
         return cls(pyflightcontrol.ports.imu_dev)
