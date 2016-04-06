@@ -7,11 +7,15 @@ from pathlib import Path
 
 def getfont_mono(pathstr=None):
     if pathstr is None:
-        d = Path(sys.argv[0]).resolve().parent
+        #d = Path(sys.argv[0]).resolve().parent
         f = 'liberation_mono.ttf'
-        paths = [d / f,
-                 d.parent / 'share' / 'pyflightcontrol' / f,
-                 Path('.').resolve() / f]
+        paths = [
+                 #d / f,
+                 #d.parent / 'share' / 'pyflightcontrol' / f,
+                 Path('.').resolve() / f,
+                 Path('/usr/share/pyflightcontrol') / f,
+                 Path('/usr/local/share/pyflightcontrol') / f
+        ]
         paths = filter(lambda x: x.exists(), paths)
         for x in paths:
             pathstr = str(x)

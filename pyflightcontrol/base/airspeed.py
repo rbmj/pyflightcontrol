@@ -1,9 +1,8 @@
-import pyflightcontrol
-import pyflightcontrol.base
+from .indicator import Indicator, IndicatorOptions
 
-class AirspeedIndicator(pyflightcontrol.base.Indicator):
+class AirspeedIndicator(Indicator):
     def __init__(self, width, height):
-        opts = indicator.IndicatorOptions(50, 999, 1)
+        opts = IndicatorOptions(50, 999, 1)
         opts.addTick(10, 0.2)
         opts.addTick(5, 0.1)
         opts.setLabelProperties(10, 0.3, 0.25)

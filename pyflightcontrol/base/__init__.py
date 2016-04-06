@@ -7,5 +7,4 @@ from .compass import CompassIndicator
 from .pfd import PFD
 
 from .joystick import Joystick
-from .base import get_main_loop, main_loop
 from . import base_test

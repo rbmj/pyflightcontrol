@@ -76,9 +76,9 @@ class BaseStation(object):
             yield from asyncio.sleep(0.1)
     
     def register(self):
-        asyncio.async(self.render_loop)
-        asyncio.async(self.uplink_loop)
-        asyncio.async(self.downlink_loop)
+        asyncio.async(self.render_loop())
+        asyncio.async(self.uplink_loop())
+        asyncio.async(self.downlink_loop())
         self.stick.register()
         self.rudder.register()
 
@@ -86,4 +86,4 @@ if __name__ == '__main__':
     b = BaseStation()
     b.register()
     loop = asyncio.get_event_loop()
-    loop.start()
+    loop.run_forever()

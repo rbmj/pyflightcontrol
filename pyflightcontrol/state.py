@@ -1,4 +1,5 @@
 import pyflightcontrol
+import math
 
 # Density Ratio every 1000 ft starting at 0
 sigma_tab = [
@@ -66,7 +67,7 @@ class AircraftState(object):
         self.p = AircraftState.pSSL # psf
         self.T = AircraftState.TSSL # deg R
         self._qnh = qnh/AircraftState.qnhconv
-        self._euler = self.attitude.euler()
+        self._euler = self._attitude.euler()
         self.v = 0
 
     #FIXME
