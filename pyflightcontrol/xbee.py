@@ -91,7 +91,7 @@ if __name__ == '__main__':
     from datetime import datetime
     def handle(pkt):
         print('Received timestamp ' + 
-                datetime.fromtimestamp(proto.gettm(pkt)))
+                str(datetime.fromtimestamp(proto.gettm(pkt))))
     dev = XBee.findExplorerDev()
     if dev is None:
         dev = XBee.findRPiSerialDev()
