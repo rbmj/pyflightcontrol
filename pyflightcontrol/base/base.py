@@ -26,7 +26,8 @@ class BaseStation(object):
     def handleDownlink(self, pkt):
         self._last_update = pyflightcontrol.proto.Timestamp()
         self._last_update.MergeFrom(pkt.time)
-        pkt_type = pkt.WhichOneof('uplink_type')
+        pkt_type = pkt.WhichOneof('downlink_type')
+        print('received downlink packet type ' + pkt_type)
         if pkt_type == 'manual':
             self.acstate.quaternion.do_set(
                     pkt.sensors.ahrs.e0,
