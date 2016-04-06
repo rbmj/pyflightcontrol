@@ -1,5 +1,5 @@
 *.pyc
 *.swp
 *.swo
-pyflightcontrol/proto/dolos_pb2.py
+pyflightcontrol/proto/*_pb2.py
 firmware/build-pro328/

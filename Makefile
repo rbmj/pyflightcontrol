@@ -1,7 +1,7 @@
 all: pyflightcontrol/proto/dolos_pb2.py
 
-pyflightcontrol/proto/dolos_pb2.py: proto/dolos.proto
-	protoc --python_out=pyflightcontrol proto/dolos.proto
+pyflightcontrol/proto/dolos_pb2.py: proto/pyflightcontrol.proto
+	protoc --python_out=pyflightcontrol proto/pyflightcontrol.proto
 
 clean:
 	rm -f pyflightcontrol/proto/dolos_pb2.py

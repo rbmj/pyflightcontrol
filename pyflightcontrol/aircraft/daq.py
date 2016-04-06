@@ -1,69 +1,81 @@
-from SelectServer import SelectServer
+import pyflightcontrol
 from usb import core
 import threading
 import serial
 import ports
 import time
 
-from .bme280 import BME280
+from .mpl3115a2 import MPL3115A2
+from .imu import IMU
 
-imu_dev = (0xfeed, 0xface) # Vendor/Product ID of USB device
-imu_usb = core.find(idVendor=imu_dev[0], idProduct=imu_dev[1])
-imu_fname = '/dev/bus/usb/{:03}/{:03}'.format(imu_usb.bus, imu_usb.address)
-imu_serial = serial.Serial(
-        port=imu_fname,
-        baudrate=9600,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS
-)
+class daq_vars(object):
+    def __init__(self):
+        self.p = 2117.0
+        self.T = 460+50.0
+        self.attitude = pyflightcontrol.math.Quaternion(0, 1, 0, 0)
+        self.load = [0., 0., 1.]
+        self.rot = [0., 0., 0.]
+        self.mag = [0., 0., 0.]
+        self.lock = threading.Lock()
 
-# Pressure
-P = 2117
-T = 460+50
+class imu_thread(threading.Thread):
+    def __init__(self, vars_out):
+        self._vars = vars_out
+        self.imu = IMU.create()
 
-# Attitude Quaternion
-e0 = 0
-ex = 1
-ey = 0
-ez = 0
+    def run(self):
+        while True:
+            self.imu.update()
+            with self._vars.lock:
+                self._vars.attitude.do_setq(self.imu.attitude)
+                self._vars.load = list(*self.imu.accel)
+                self._vars.rot = list(*self.imu.gyro)
+                self._vars.mag = list(*self.imu.mag)
 
-# Load Factors
-nx = 0
-ny = 0
-nz = 1
+class pressure_thread(threading.Thread):
+    def __init__(self, vars_out):
+        self._vars = vars_out
+        self.dev = MPL3115A2()
+    
+    def run(self):
+        while True:
+            self.dev.poll()
+            with self._vars.lock:
+                self._vars.p = self.dev.pressure
+                self._vars.T = self.dev.temperature
+            time.sleep(0.005)
 
-# Gyro
-p = 0
-q = 0
-r = 0
-
-def getIMU():
-    pass
-
-def getAtmos():
-    pass
-
-def getPitot():
-    pass
-
-dataLock = threading.Lock()
-
-def doDAQ():
+def handle(connection):
     while True:
-        dataLock.acquire()
-        getIMU()
-        getAtmos()
-        #getPitot()
-        dataLock.release()
-        time.sleep(0.025)
+        cmd = daq_command()
+        if not connection.receiveBuffer(cmd):
+            break
 
-daqThread = threading.Thread(doDAQ)
+class daq_daemon(pyflightcontrol.DaemonServer):
+    def __init__(self):
+        super().__init__(ports.tcpPort('daq'), 'daq', handle)
 
-def handleRequest(srv, sock):
-    pass
+    def post_init(self):
+        self._vars = daq_vars()
+        t_imu = imu_thread(self._vars)
+        t_imu.start()
+        t_atmos = pressure_thread(self._vars)
+        t_atmos.start()
 
-srv = SelectServer(ports.tcpPort(ports.tcp['daq']), handleRequest)
+    def handle(self, connection):
+        while True:
+            cmd = daq_command()
+            if not connection.receiveBuffer(cmd):
+                break
+            outbuf = daq_resp()
+            with self._vars.lock:
+                outbuf.e0 = self._vars.attitude.e0
+                # ...
+            connection.sendBuffer(outbuf)
 
-while True:
-    srv.run()
+class DaqRpcChannel(pyflightcontrol.RpcChannel):
+    def __init__(self):
+        super().__init__(ports.tcpHost('daq'), ports.tcpPort('daq'))
+
+    def getMeasurement(self):
+        pass

@@ -1,1 +1,1 @@
-from .dolos_pb2 import *
+from .pyflightcontrol_pb2 import *

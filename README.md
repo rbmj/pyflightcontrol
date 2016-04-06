@@ -96,4 +96,5 @@ Dependencies:
     $ sudo 2to3 -w /usr/local/lib/$PYTHON3/dist-packages/gps
     $ sudo pip3 install wiringpi
     $ sudo pip3 install git+https://github.com/adafruit/Adafruit_Python_GPIO.git
+    $ sudo pip3 install python-daemon
 

@@ -1,0 +1,130 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package pyflightcontrol;
+
+// GENERIC Message Types
+
+message quaternion {
+    float e0 = 1;
+    float ex = 2;
+    float ey = 3;
+    float ez = 4;
+}
+
+message load_factor {
+    float nx = 1;
+    float ny = 2;
+    float nz = 3;
+}
+
+message angular_rates {
+    float p = 1;
+    float q = 2;
+    float r = 3;
+}
+
+message magnetic_field {
+    float mx = 1;
+    float my = 2;
+    float mz = 3;
+}
+
+message gps_vars {
+    float lat = 1;
+    float lon = 2;
+    float alt = 3;
+    float spd = 4;
+    float climb = 5;
+    float track = 6;
+}
+
+message sensor_measurement {
+    quaternion ahrs = 1;
+    load_factor accel = 2;
+    angular_rates gyro = 3;
+    magnetic_field magneto = 4;
+    float pitot = 5;
+    float static = 6;
+    float temp = 7;
+    float battery = 8;
+}
+
+message actuation_vars {
+    float d_a = 1;
+    float d_e = 2;
+    float d_r = 3;
+    float motor_pwr = 4;
+}
+
+message manual_response {
+    sensor_measurement sensors = 1;
+    actuation_vars actuation = 2;
+}
+
+//message state_vars {
+//    load_factor load = 1;
+//    quaternion attitude = 2;
+//    angular_rates rates = 3;
+//    float v_inf = 4;
+//    float h = 5;
+//    float x = 6;
+//    float y = 7;
+//    float T = 8;
+//    float p = 9;
+//    float qnh = 10;
+//    gps_vars ground = 11;
+//    actuation_vars control = 12;
+//}
+
+// DAQ Protocol
+
+message daq_query {
+    google.protobuf.Timestamp time = 1;
+    oneof query_type {
+        bool measure = 2;
+    }
+}
+
+message daq_response {
+    google.protobuf.Timestamp query_time = 1;
+    google.protobuf.Timestamp time = 2;
+    oneof response_type {
+        sensor_measurement measure = 3;
+    }
+}
+
+// Actuation Protocol
+
+message actuation_query {
+    google.protobuf.Timestamp time = 1;
+    oneof query_type {
+        actuation_vars setvals = 2;
+        bool getvals = 3;
+    }
+}
+
+message actuation_response {
+    google.protobuf.Timestamp query_time = 1;
+    google.protobuf.Timestamp time = 2;
+    oneof response_type {
+        bool setvals = 3;
+        actuation_vars getvals = 4;
+    }
+}
+
+// Command Protocol (asynchronous)
+
+message command_uplink {
+    google.protobuf.Timestamp time = 1;
+    oneof uplink_type {
+        actuation_vars manual = 2;
+    }
+}
+
+message command_downlink {
+    google.protobuf.Timestamp time = 1;
+    google.protobuf.Timestamp last_update = 2;
+    oneof downlink_type {
+        manual_response manual = 3;
+    }
+}

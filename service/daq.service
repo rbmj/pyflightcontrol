@@ -1,0 +1,12 @@
+[Unit]
+Description=pyflightcontrol - Data AQuisition
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/pfc-daq.pid
+ExecStart=/usr/sbin/pfc-daq
+Restart=always
+
+[Install]
+WantedBy=graphical.target
