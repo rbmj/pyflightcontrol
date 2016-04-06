@@ -1,0 +1,12 @@
+[Unit]
+Description=pyflightcontrol - Actuation
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/pfc-actuate.pid
+ExecStart=/usr/bin/python3 -m pyflightcontrol.aircraft.actuate
+Restart=always
+
+[Install]
+WantedBy=graphical.target

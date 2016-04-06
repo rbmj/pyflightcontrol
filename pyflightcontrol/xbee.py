@@ -17,7 +17,10 @@ class XBee(object):
     def findExplorerDev():
         # Get XBee Device File - for SparkFun XBee Explorer
         # This could be done less cruftily
-        snum = core.find(idVendor=0x0403, idProduct=0x6015).serial_number
+        desc = core.find(idVendor=0x0403, idProduct=0x6015)
+        if desc is None:
+            return None
+        snum = desc.serial_number
         prod = 'FTDI_FT231X_USB_UART'
         dev = '/dev/serial/by-id/usb-{}_{}-if00-port0'.format(prod, snum)
         return dev
@@ -58,7 +61,7 @@ class XBee(object):
                 while self._dev.inWaiting() > 0:
                     if len(self._buf) == 2:
                         self._pktlen = struct.unpack('!H', self._buf)[0]
-                        self._state = XBee.READ
+                        self._state = XBee.State.READ
                         self._buf = b''
                         break
                     self._buf = self._buf + self._dev.read(1)
@@ -81,3 +84,21 @@ class XBee(object):
     def writePkt(self, pkt):
         msg = pkt.SerializeToString()
         self._dev.write(XBee.MAGIC + struct.pack('!H', len(msg)) + msg)
+
+if __name__ == '__main__':
+    from . import proto
+    from time import sleep
+    from datetime import datetime
+    def handle(pkt):
+        print('Received timestamp ' + datetime.fromtimestamp(gettm(pkt)))
+    dev = XBee.findExplorerDev()
+    if dev is None:
+        dev = XBee.findRPiSerialDev()
+    xbee = XBee(dev)
+    while True:
+        pkt = proto.stamp()
+        print('sending timestamp')
+        xbee.writePkt(pkt)
+        pkt = xbee.readPktAsync(proto.Timestamp(), handle)
+        sleep(1)
+

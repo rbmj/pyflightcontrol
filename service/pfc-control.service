@@ -1,0 +1,12 @@
+[Unit]
+Description=pyflightcontrol - Command&Control
+After=syslog.target network.target pfc-daq.target pfc-actuate.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/pfc-control.pid
+ExecStart=/usr/bin/python3 -m pyflightcontrol.aircraft.control
+Restart=always
+
+[Install]
+WantedBy=graphical.target
