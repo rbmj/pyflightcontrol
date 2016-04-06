@@ -19,7 +19,7 @@ class IMU(object):
         self._dev.write(b'#oqb')
         self._dev.write(b'#oqb')
         self.sync()
-        self.attitude = pyflightcontrol.math.Quaternion(0, 1, 0, 0)
+        self.attitude = pyflightcontrol.angle.Quaternion(0, 1, 0, 0)
         self.accel = [0, 0, 1]
         self.gyro = [0, 0, 0]
         self.mag = [0, 0, 0]

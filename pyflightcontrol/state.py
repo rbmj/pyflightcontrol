@@ -59,7 +59,7 @@ class AircraftState(object):
 
     def __init__(self, qnh = 2992):
         self.airspeed = 0
-        self._attitude = pyflightcontrol.math.Quaternion(0, 1, 0, 0);
+        self._attitude = pyflightcontrol.angle.Quaternion(0, 1, 0, 0);
         self.load = [0, 0, 1] # [nx, ny, nz]
         self.rates = [0, 0, 0] # [p, q, r]
         self.location_offset = [0, 0]
@@ -75,7 +75,7 @@ class AircraftState(object):
         if pkt.HasField('load'):
             this.load = [pkt.load.nx, pkt.load.ny, pkt.load.nz]
         if pkt.HasField('quat'):
-            this._attitude = pyflightcontrol.math.Quaternion(
+            this._attitude = pyflightcontrol.angle.Quaternion(
                     pkt.quat.e0, pkt.quat.ex, pkt.quat.ey, pkt.quat.ez)
             this._euler = this.load.euler()
         if pkt.HasField('v_inf'):

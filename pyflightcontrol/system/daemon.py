@@ -65,11 +65,11 @@ class DaemonServer(object):
         pass
 
     def startDaemon(self):
-        self._log = logging.getLogger('pfc-' + self._name)
-        loghnd = logging.handlers.SysLogHandler(address='/dev/log')
-        self._log.addHandler(loghnd)
         try:
             with self._context:
+                self._log = logging.getLogger('pfc-' + self._name)
+                loghnd = logging.handlers.SysLogHandler(address='/dev/log')
+                self._log.addHandler(loghnd)
                 self._main()
         except Exception as e:
             self._log.exception(e)

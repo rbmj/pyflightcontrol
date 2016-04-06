@@ -61,6 +61,10 @@ message manual_response {
     actuation_vars actuation = 2;
 }
 
+message bool_wrap {
+    bool value = 1;
+}
+
 //message state_vars {
 //    load_factor load = 1;
 //    quaternion attitude = 2;
@@ -81,7 +85,7 @@ message manual_response {
 message daq_query {
     google.protobuf.Timestamp time = 1;
     oneof query_type {
-        bool measure = 2;
+        bool_wrap measure = 2;
     }
 }
 
@@ -99,7 +103,7 @@ message actuation_query {
     google.protobuf.Timestamp time = 1;
     oneof query_type {
         actuation_vars setvals = 2;
-        bool getvals = 3;
+        bool_wrap getvals = 3;
     }
 }
 
@@ -107,7 +111,7 @@ message actuation_response {
     google.protobuf.Timestamp query_time = 1;
     google.protobuf.Timestamp time = 2;
     oneof response_type {
-        bool setvals = 3;
+        bool_wrap setvals = 3;
         actuation_vars getvals = 4;
     }
 }

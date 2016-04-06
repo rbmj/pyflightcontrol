@@ -8,7 +8,7 @@ class XBee(object):
     MAGIC = struct.pack('!I', 0xd0105acf)
     BUFINIT = 'AAAA'.encode('ascii')
 
-    class XBeeState(enum.Enum):
+    class State(enum.Enum):
         SYNC = 1
         GETLEN = 2
         READ = 3
@@ -28,8 +28,9 @@ class XBee(object):
     
     def __init__(self, dev):
         self._dev = serial.Serial(dev, baud=9600)
-        self._state = XBeeState.SYNC
+        self._state = XBee.State.SYNC
         self._buf = XBee.BUFINIT
+        self._pktlen = 0
 
     def serialReadBuffer(self, protobuf):
         buf = XBee.BUFINIT
@@ -39,18 +40,21 @@ class XBee(object):
         buf = self._dev.read(l)
         pkt = protobuf()
         pkt.ParseFromString(buf)
+        # Need to resynchronize now that we've messed with things
+        self._state = XBee.State.SYNC
+        self._buf = XBee.BUFINIT
         return pkt
     
     def readPktAsync(self, protobuf, cb):
         try:
-            if self._state == XBeeState.SYNC:
+            if self._state == XBee.State.SYNC:
                 while self._dev.in_waiting > 0:
                     if self._buf == XBee.MAGIC:
                         self._buf = b''
-                        self._state = XBeeState.GETLEN
+                        self._state = XBee.State.GETLEN
                         break
                     self._buf = self._buf[1:] + self._dev.read(1)
-            if self._state == XBeeState.GETLEN:
+            if self._state == XBee.State.GETLEN:
                 while self._dev.in_waiting > 0:
                     if len(self._buf) == 2:
                         self._pktlen = struct.unpack('!H', self._buf)[0]
@@ -58,7 +62,7 @@ class XBee(object):
                         self._buf = b''
                         break
                     self._buf = self._buf + self._dev.read(1)
-            if self._state == XBeeState.READ:
+            if self._state == XBee.State.READ:
                 remLen = self._pktlen - len(self._buf)
                 readLen = min(remLen, self._dev.in_waiting)
                 self._buf = self._buf + self._dev.read(readLen)
@@ -66,11 +70,11 @@ class XBee(object):
                     pkt = protobuf()
                     pkt.ParseFromString(self._buf)
                     cb(pkt)
-                    self._state = XBeeState.SYNC
+                    self._state = XBee.State.SYNC
                     self._buf = XBee.BUFINIT
         except:
             # if there's an error, try and resynchronize
-            self._state = XBeeState.SYNC
+            self._state = XBee.State.SYNC
             self._buf = XBee.BUFINIT
             raise
 

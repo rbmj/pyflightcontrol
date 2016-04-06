@@ -37,5 +37,3 @@ def tcpTuple(name):
     x = tcp[name].split(':')
     return (x[0], int(x[1]))
 
-
-
