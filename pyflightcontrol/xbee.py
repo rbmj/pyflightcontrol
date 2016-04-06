@@ -90,7 +90,8 @@ if __name__ == '__main__':
     from time import sleep
     from datetime import datetime
     def handle(pkt):
-        print('Received timestamp ' + datetime.fromtimestamp(gettm(pkt)))
+        print('Received timestamp ' + 
+                datetime.fromtimestamp(proto.gettm(pkt)))
     dev = XBee.findExplorerDev()
     if dev is None:
         dev = XBee.findRPiSerialDev()
@@ -99,6 +100,6 @@ if __name__ == '__main__':
         pkt = proto.stamp()
         print('sending timestamp')
         xbee.writePkt(pkt)
-        pkt = xbee.readPktAsync(proto.Timestamp(), handle)
+        pkt = xbee.readPktAsync(proto.Timestamp, handle)
         sleep(1)
 
