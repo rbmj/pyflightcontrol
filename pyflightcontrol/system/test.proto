@@ -1,0 +1,22 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package rpc_test;
+
+message str {
+    string value = 1;
+}
+
+message test_query {
+    google.protobuf.Timestamp time = 1;
+    oneof query_type {
+        str echo = 2;
+    }
+}
+
+message test_response {
+    google.protobuf.Timestamp query_time = 1;
+    google.protobuf.Timestamp time = 2;
+    oneof response_type {
+        str echo = 3;
+    }
+}

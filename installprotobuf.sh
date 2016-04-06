@@ -1,4 +1,6 @@
 #!/bin/bash
+PYVERSION=`python3 --version 2>&1 | cut -d' ' -f2 | cut -d. -f1-2`
+PREFIX=/usr/local
 if [ `whoami` != root ] ; then
     echo 'Must run as root!'
     exit 1
@@ -23,5 +25,7 @@ tar -xf "$archive"
 cd "protobuf-$version/python"
 python3 setup.py build
 python3 setup.py install
+find /usr/local/include/google -name '*.proto' \
+    | xargs protoc "--proto_path=$PREFIX/include" "--python_out=$PREFIX/lib/python$PYVERSION/dist-packages"
 cd ../..
 rm -rf "protobuf-$version" "$archive"

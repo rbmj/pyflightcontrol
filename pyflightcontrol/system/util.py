@@ -11,7 +11,7 @@ def sock_recvall(sock, n):
         data += packet
     return data
 
-def readBuffer(protobuf, sock):
+def receiveBuffer(protobuf, sock):
     msg = sock_recvall(sock, 2)
     if msg[0] == 0xFF and msg[1] == 0xFF:
         return False

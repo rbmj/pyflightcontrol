@@ -1,13 +1,17 @@
+from google.protobuf.timestamp_pb2 import Timestamp
+import socket
+import time
 from . import util
 from .daemon import DaemonServer
-import socket
-from google.protobuf.timestamp import Timestamp
 
 def mktimestamp():
     now = time.time()
     seconds = int(now)
     nanos = int((now - seconds) * 1e9)
     return Timestamp(seconds=seconds, nanos=nanos)
+
+def gettm(tm):
+    return tm.seconds + tm.nanos*1e-9
 
 class RpcProtocol(object):
     def __init__(self, name, port, query_type, response_type, actions={}):
@@ -17,10 +21,13 @@ class RpcProtocol(object):
         self.response_type = response_type
         self.actions = actions
 
+    def addAction(self, qtype, action):
+        self.actions[qtype] = action
+
 class RpcServer(DaemonServer):
-    def __init__(self, port, protocol):
+    def __init__(self, protocol):
         self.protocol = protocol
-        super().__init__(port, protocol.name)
+        super().__init__(protocol.port, protocol.name)
 
     def handle(self, conn):
         while True:
@@ -41,20 +48,21 @@ class RpcServer(DaemonServer):
                     except AttributeError:
                         conn.log.error('Bad Protocol Buffer for ' + qtype)
                     else:
-                        resp_val = resp_action(subq)
+                        resp_val = resp_action(subq, gettm(query.time))
                         if resp_val is None:
                             conn.log.info('Error processing action'
                                     + 'for type ' + qtype)
                         else:
                             subr.CopyFrom(resp_val)
-            resp.time.CopyFrom(mktimestamp())
+            resp.time.MergeFrom(mktimestamp())
             conn.sendBuffer(resp)
 
 class RpcClient(object):
-    def __init__(self, host, protocol):
+    def __init__(self, host, protocol, log):
         self._host = host
         self.protocol = protocol
         self._sock = None
+        self.log = log
 
     def connect(self):
         if not (self._sock is None):
@@ -89,18 +97,21 @@ class RpcClient(object):
             return None
         try:
             resp = self.protocol.response_type()
-            pyflightcontrol.util.sendBuffer(q, self._sock)
-            if not pyflightcontrol.util.receiveBuffer(resp, self._sock):
+            util.sendBuffer(q, self._sock)
+            if not util.receiveBuffer(resp, self._sock):
                 self.log.error('Cannot receive query')
                 return None
         except Exception as e:
             self.log.exception(e)
             self.close()
             return None
+        if resp.WhichOneof('response_type') != qtype:
+            self.log.warning('Bad response type')
+            return None
         try:
             subr = getattr(resp, qtype)
         except AttributeError:
             self.log.error('Bad protocol buffer for ' + qtype)
             return None
-        return (resp.time, subr)
+        return (subr, gettm(resp.time))
 
