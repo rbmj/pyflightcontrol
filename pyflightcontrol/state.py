@@ -69,6 +69,7 @@ class AircraftState(object):
         self._euler = self.attitude.euler()
         self.v = 0
 
+    #FIXME
     @classmethod
     def unserialize(cls, pkt):
         this = cls()

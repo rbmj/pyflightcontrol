@@ -3,7 +3,8 @@ servo = {
     'rudder': 0,
     'elevator': 1,
     'aileron_l': 2,
-    'aileron_r': 3
+    'aileron_r': 3,
+    'motor_pwr': 5
 }
 
 # Serial Device SNs:

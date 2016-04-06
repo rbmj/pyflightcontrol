@@ -4,8 +4,12 @@ from .maestro import Maestro
 import threading
 
 def getPWM(deg):
-    # units are in quarter microseconds, with a range from 3000-9000
-    return 3000+int((90.0 + (deg/180.0))*6000)
+    # units are in quarter microseconds, with a range from 4000-8000
+    return 4000+int((90.0 + (deg/180.0))*4000)
+
+def getMotor(percent):
+    # units again, quarter microseconds, range 4800 to 7200
+    return 4800+int((percent/100.)*2400)
 
 Protocol = pyflightcontrol.system.RpcProtocol('actuate',
         pyflightcontrol.ports.tcpPort('actuate'),
@@ -32,6 +36,7 @@ class Server(pyflightcontrol.system.RpcServer):
             self.ctrl.setTarget(ports.servo['aileron_l'], getPWM(-self.aileron))
             self.ctrl.setTarget(ports.servo['elevator'], getPWM(self.elevator))
             self.ctrl.setTarget(ports.servo['rudder'], getPWM(self.rudder))
+            self.ctrl.setTarget(ports.servo['motor_pwr'], getPWM(self.motor*1.8))
 
     def handleSetvals(self, actuation_vars, timestamp):
         pkt = pyflightcontrol.proto.bool_wrap()
