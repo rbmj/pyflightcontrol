@@ -32,11 +32,16 @@ class Server(pyflightcontrol.system.RpcServer):
 
     def _doSet(self):
         with self.lock:
-            self.ctrl.setTarget(ports.servo['aileron_r'], getPWM(self.aileron))
-            self.ctrl.setTarget(ports.servo['aileron_l'], getPWM(-self.aileron))
-            self.ctrl.setTarget(ports.servo['elevator'], getPWM(self.elevator))
-            self.ctrl.setTarget(ports.servo['rudder'], getPWM(self.rudder))
-            self.ctrl.setTarget(ports.servo['motor_pwr'], getPWM(self.motor*1.8))
+            self.ctrl.setTarget(pyflightcontrol.ports.servo['aileron_r'],
+                    getPWM(self.aileron))
+            self.ctrl.setTarget(pyflightcontrol.ports.servo['aileron_l'],
+                    getPWM(-self.aileron))
+            self.ctrl.setTarget(pyflightcontrol.ports.servo['elevator'],
+                    getPWM(self.elevator))
+            self.ctrl.setTarget(pyflightcontrol.ports.servo['rudder'],
+                    getPWM(self.rudder))
+            self.ctrl.setTarget(pyflightcontrol.ports.servo['motor_pwr'],
+                    getMotor(self.motor))
 
     def handleSetvals(self, actuation_vars, timestamp):
         pkt = pyflightcontrol.proto.bool_wrap()
@@ -61,7 +66,7 @@ class Server(pyflightcontrol.system.RpcServer):
 class Client(pyflightcontrol.system.RpcClient):
     def __init__(self, log):
         super().__init__(pyflightcontrol.ports.tcpHost('actuate'), 
-                DAQProtocol, log)
+                Protocol, log)
 
     def getvals(self):
         pkt = pyflightcontrol.proto.bool_wrap()

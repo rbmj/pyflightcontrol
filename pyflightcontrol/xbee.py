@@ -27,7 +27,7 @@ class XBee(object):
         return '/dev/ttyAMA0'
     
     def __init__(self, dev):
-        self._dev = serial.Serial(dev, baud=9600)
+        self._dev = serial.Serial(dev, 9600)
         self._state = XBee.State.SYNC
         self._buf = XBee.BUFINIT
         self._pktlen = 0
@@ -48,14 +48,14 @@ class XBee(object):
     def readPktAsync(self, protobuf, cb):
         try:
             if self._state == XBee.State.SYNC:
-                while self._dev.in_waiting > 0:
+                while self._dev.inWaiting() > 0:
                     if self._buf == XBee.MAGIC:
                         self._buf = b''
                         self._state = XBee.State.GETLEN
                         break
                     self._buf = self._buf[1:] + self._dev.read(1)
             if self._state == XBee.State.GETLEN:
-                while self._dev.in_waiting > 0:
+                while self._dev.inWaiting() > 0:
                     if len(self._buf) == 2:
                         self._pktlen = struct.unpack('!H', self._buf)[0]
                         self._state = XBee.READ
@@ -64,7 +64,7 @@ class XBee(object):
                     self._buf = self._buf + self._dev.read(1)
             if self._state == XBee.State.READ:
                 remLen = self._pktlen - len(self._buf)
-                readLen = min(remLen, self._dev.in_waiting)
+                readLen = min(remLen, self._dev.inWaiting())
                 self._buf = self._buf + self._dev.read(readLen)
                 if len(self._buf) == self._pktlen:
                     pkt = protobuf()

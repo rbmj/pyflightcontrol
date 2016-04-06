@@ -21,20 +21,22 @@ class imu_thread(threading.Thread):
     def __init__(self, vars_out):
         self._vars = vars_out
         self.imu = IMU.create()
+        super().__init__()
 
     def run(self):
         while True:
             self.imu.update()
             with self._vars.lock:
                 self._vars.attitude.do_setq(self.imu.attitude)
-                self._vars.load = list(*self.imu.accel)
-                self._vars.rot = list(*self.imu.gyro)
-                self._vars.mag = list(*self.imu.mag)
+                self._vars.load = list(self.imu.accel)
+                self._vars.rot = list(self.imu.gyro)
+                self._vars.mag = list(self.imu.mag)
 
 class atmos_thread(threading.Thread):
     def __init__(self, vars_out):
         self._vars = vars_out
         self.dev = MPL3115A2()
+        super().__init__()
     
     def run(self):
         while True:
