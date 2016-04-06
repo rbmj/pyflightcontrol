@@ -32,6 +32,7 @@ class Server(object):
         self._last_update = pyflightcontrol.proto.Timestamp()
         self._last_update.MergeFrom(pkt.time)
         pkt_type = pkt.WhichOneof('uplink_type')
+        print('received uplink packet type ' + pkt_type)
         if pkt_type == 'manual':
             self.actuate.setvals(pkt.manual.d_a, pkt.manual.d_e,
                     pkt.manual.d_r, pkt.manual.motor_pwr)
@@ -87,4 +88,4 @@ class Server(object):
 
 if __name__ == '__main__':
     srv = Server()
-    srv.startDaemon()
+    srv.start()
