@@ -89,4 +89,4 @@ class Server(object):
 
 if __name__ == '__main__':
     srv = Server()
-    srv.start()
+    srv.startDaemon()
