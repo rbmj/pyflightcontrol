@@ -31,7 +31,7 @@ class XBee(object):
         return '/dev/ttyAMA0'
     
     def __init__(self, dev):
-        self._dev = serial.Serial(dev, 57600)
+        self._dev = serial.Serial(dev, 115200)
         self._state = XBee.State.SYNC
         self._buf = XBee.BUFINIT
         self._pktlen = 0
