@@ -34,24 +34,24 @@ class Server(object):
         self._last_update = pyflightcontrol.proto.Timestamp()
         self._last_update.MergeFrom(pkt.time)
         pkt_type = pkt.WhichOneof('uplink_type')
+        resp = pyflightcontrol.proto.command_downlink()
+        resp.last_update.MergeFrom(self._last_update)
         if pkt_type == 'manual':
             self.actuate.setvals(pkt.manual.d_a, pkt.manual.d_e,
                     pkt.manual.d_r, pkt.manual.motor_pwr)
+            if not (self._sensor_vals is None):
+                resp.manual.sensors.MergeFrom(self._sensor_vals[0])
+            if not (self._actuate_vals is None):
+                resp.manual.actuation.MergeFrom(self._actuate_vals[0])
+        resp.time.MergeFrom(pyflightcontrol.proto.stamp())
+        self.xbee.writePkt(resp)
+
 
     def event_loop(self, send_telemetry):
         self.xbee.readPktAsync(pyflightcontrol.proto.command_uplink, self.handleUplink)
         self._sensor_vals = self.daq.measure()
         self._actuate_vals = self.actuate.getvals()
         if send_telemetry:
-            pkt = pyflightcontrol.proto.command_downlink()
-            if not (self._last_update is None):
-                pkt.last_update.MergeFrom(self._last_update)
-            if not (self._sensor_vals is None):
-                pkt.manual.sensors.MergeFrom(self._sensor_vals[0])
-            if not (self._actuate_vals is None):
-                pkt.manual.actuation.MergeFrom(self._actuate_vals[0])
-            pkt.time.MergeFrom(pyflightcontrol.proto.stamp())
-            self.xbee.writePkt(pkt)
 
     def main(self):
         sendpkt_freq = 2 # once every N packets
