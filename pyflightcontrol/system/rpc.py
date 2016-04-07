@@ -58,8 +58,7 @@ class RpcServer(DaemonServer):
             conn.sendBuffer(resp)
 
 class RpcClient(object):
-    def __init__(self, host, protocol, log):
-        self._host = host
+    def __init__(self, protocol, log):
         self.protocol = protocol
         self._sock = None
         self.log = log
@@ -67,9 +66,9 @@ class RpcClient(object):
     def connect(self):
         if not (self._sock is None):
             return
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
-            self._sock.connect((self._host, self.protocol.port))
+            self._sock.connect(self.protocol.port)
         except Exception as e:
             self.log.exception(e)
             self.close()

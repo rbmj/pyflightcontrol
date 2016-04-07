@@ -12,7 +12,7 @@ def getMotor(percent):
     return 4800+int((percent/100.)*2400)
 
 Protocol = pyflightcontrol.system.RpcProtocol('actuate',
-        pyflightcontrol.ports.tcpPort('actuate'),
+        pyflightcontrol.ports.unix['actuate'],
         pyflightcontrol.proto.actuation_query,
         pyflightcontrol.proto.actuation_response)
 
@@ -67,8 +67,7 @@ class Server(pyflightcontrol.system.RpcServer):
 
 class Client(pyflightcontrol.system.RpcClient):
     def __init__(self, log):
-        super().__init__(pyflightcontrol.ports.tcpHost('actuate'), 
-                Protocol, log)
+        super().__init__(Protocol, log)
 
     def getvals(self):
         pkt = pyflightcontrol.proto.bool_wrap()

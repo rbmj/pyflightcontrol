@@ -35,7 +35,7 @@ class atmos_thread(threading.Thread):
             time.sleep(0.01)
 
 Protocol = pyflightcontrol.system.RpcProtocol('daq',
-        pyflightcontrol.ports.tcpPort('daq'),
+        pyflightcontrol.ports.unix['daq'],
         pyflightcontrol.proto.daq_query,
         pyflightcontrol.proto.daq_response)
 
@@ -95,8 +95,7 @@ class Server(pyflightcontrol.system.RpcServer):
 
 class Client(pyflightcontrol.system.RpcClient):
     def __init__(self, log):
-        super().__init__(pyflightcontrol.ports.tcpHost('daq'), 
-                Protocol, log)
+        super().__init__(Protocol, log)
 
     def measure(self):
         pkt = pyflightcontrol.proto.bool_wrap()

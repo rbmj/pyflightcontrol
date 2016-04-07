@@ -21,6 +21,13 @@ tcp = {
     'control': '127.0.0.1:16005',
 }
 
+# UNIX sockets
+unix = {
+    'daq': '/var/run/pyflightcontrol/daq',
+    'actuate': '/var/run/pyflightcontrol/actuate',
+    'control': '/var/run/pyflightcontrol/control'
+}
+
 # device names:
 imu_dev_name = 'usb-FTDI_FT232R_USB_UART_{}-if00-port0'.format(imu_sn)
 imu_dev = '/dev/serial/by-id/' + imu_dev_name

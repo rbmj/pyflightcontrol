@@ -33,9 +33,9 @@ class DaemonConnection(threading.Thread):
 class DaemonServer(object):
     def __init__(self, port, name):
         self._name = name
-        self._fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._fd = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self._fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._fd.bind(('0.0.0.0', port))
+        self._fd.bind(port)
         self._fd.listen(5)
 
         self._context = daemon.DaemonContext(
@@ -73,6 +73,8 @@ class DaemonServer(object):
                 self._main()
         except Exception as e:
             self._log.exception(e)
+        finally:
+            self._fd.close()
 
     def start(self):
         self._log = logging
@@ -80,6 +82,8 @@ class DaemonServer(object):
             self._main()
         except Exception as e:
             self._log.exception(e)
+        finally:
+            self._fd.close()
 
     def _main(self):
         self.post_init()
