@@ -26,7 +26,8 @@ class Maestro:
     # communication channel.
     def __init__(self, ttyStr):
         # Open the command port
-        self.usb = serial.Serial(ttyStr, 57600)
+        self._tty = ttyStr
+        self._open()
         # Command lead-in and device 12 are sent for each Pololu serial commands.
         self.PololuCmd = chr(0xaa) + chr(0xc)
         # Track target position for each servo. The function isMoving() will
@@ -44,7 +45,10 @@ class Maestro:
         # if00 is command port, if02 control port
         dev = '/dev/serial/by-id/usb-{}_{}-if00'.format(prod, snum)
         return cls(dev)
-        
+       
+    def _open(self):
+        self.usb = serial.Serial(self._tty, 57600)
+
     # Cleanup by closing USB serial port
     def close(self):
         self.usb.close()
@@ -67,6 +71,15 @@ class Maestro:
     # Return Minimum channel range value
     def getMax(self, chan):
         return self.Max[chan]
+
+    def _write(self, data):
+        try:
+            return self.usb.write(data)
+        except serial.serialutil.SerialException:
+            self.close()
+            self._open()
+            raise
+
         
     # Set channel to a specified target value.  Servo will begin moving based
     # on Speed and Acceleration parameters previously set.
@@ -87,7 +100,7 @@ class Maestro:
         msb = (target >> 7) & 0x7f #shift 7 and take next 7 bits for msb
         # Send Pololu intro, device number, command, channel, and target lsb/msb
         cmd = self.PololuCmd + chr(0x04) + chr(chan) + chr(lsb) + chr(msb)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
         # Record Target value
         self.Targets[chan] = target
         
@@ -101,7 +114,7 @@ class Maestro:
         msb = (speed >> 7) & 0x7f #shift 7 and take next 7 bits for msb
         # Send Pololu intro, device number, command, channel, speed lsb, speed msb
         cmd = self.PololuCmd + chr(0x07) + chr(chan) + chr(lsb) + chr(msb)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
 
     # Set acceleration of channel
     # This provide soft starts and finishes when servo moves to target position.
@@ -112,7 +125,7 @@ class Maestro:
         msb = (accel >> 7) & 0x7f #shift 7 and take next 7 bits for msb
         # Send Pololu intro, device number, command, channel, accel lsb, accel msb
         cmd = self.PololuCmd + chr(0x09) + chr(chan) + chr(lsb) + chr(msb)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
     
     # Get the current position of the device on the specified channel
     # The result is returned in a measure of quarter-microseconds, which mirrors
@@ -123,7 +136,7 @@ class Maestro:
     # it is not stalled or slowed.
     def getPosition(self, chan):
         cmd = self.PololuCmd + chr(0x10) + chr(chan)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
         lsb = ord(self.usb.read())
         msb = ord(self.usb.read())
         return (msb << 8) + lsb
@@ -144,7 +157,7 @@ class Maestro:
     # Acceleration have been set on one or more of the channels. Returns True or False.
     def getMovingState(self):
         cmd = self.PololuCmd + chr(0x13)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
         if self.usb.read() == chr(0):
             return False
         else:
@@ -157,9 +170,9 @@ class Maestro:
         cmd = self.PololuCmd + chr(0x27) + chr(subNumber)
         # can pass a param with comman 0x28
         # cmd = self.PololuCmd + chr(0x28) + chr(subNumber) + chr(lsb) + chr(msb)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
 
     # Stop the current Maestro Script
     def stopScript(self):
         cmd = self.PololuCmd + chr(0x24)
-        self.usb.write(bytes(cmd, enc))
+        self._write(bytes(cmd, enc))
