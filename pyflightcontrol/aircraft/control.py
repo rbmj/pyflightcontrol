@@ -51,7 +51,6 @@ class Server(object):
         self.xbee.readPktAsync(pyflightcontrol.proto.command_uplink, self.handleUplink)
         self._sensor_vals = self.daq.measure()
         self._actuate_vals = self.actuate.getvals()
-        if send_telemetry:
 
     def main(self):
         sendpkt_freq = 2 # once every N packets
