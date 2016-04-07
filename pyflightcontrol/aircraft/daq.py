@@ -105,5 +105,6 @@ class Client(pyflightcontrol.system.RpcClient):
         return ret
 
 if __name__ == '__main__':
+    import os
     srv = Server()
-    srv.startDaemon()
+    srv.start()

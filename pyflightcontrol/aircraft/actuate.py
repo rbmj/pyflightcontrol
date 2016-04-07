@@ -89,4 +89,4 @@ class Client(pyflightcontrol.system.RpcClient):
 
 if __name__ == '__main__':
     srv = Server()
-    srv.startDaemon()
+    srv.start()

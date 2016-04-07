@@ -6,6 +6,7 @@ import signal
 import threading
 import logging
 import logging.handlers
+import os
 
 class DaemonConnection(threading.Thread):
     def __init__(self, sock, log, remote, srv):
@@ -49,6 +50,7 @@ class DaemonServer(object):
         }
         #context.gid = grp.getgrnam('foo').gr_gid
         self._context.files_preserve = [self._fd]
+        self._log = logging
 
     def preserve_file(self, f):
         self._context.files_preserve.append(f)
@@ -75,7 +77,9 @@ class DaemonServer(object):
             self._log.exception(e)
 
     def start(self):
-        self._log = logging
+        if os.environ.get('DEBUG') is None:
+            self.startDaemon()
+            return
         try:
             self._main()
         except Exception as e:
