@@ -157,12 +157,12 @@ class AircraftState(object):
 
     @property
     def pitch(self):
-        return (180/math.pi)*self._euler.pitch
+        return self._euler.pitch_d
 
     @property
     def roll(self):
-        return (180/math.pi)*self._euler.roll
+        return self._euler.roll_d
 
     @property
     def bearing(self):
-        return (180/math.pi)*self._euler.bearing
+        return self._euler.bearing_d
