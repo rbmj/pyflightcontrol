@@ -4,7 +4,7 @@ from daemon.pidfile import PIDLockFile
 import logging
 import time
 import signal
-
+import os
 from pyflightcontrol.angle import Quaternion
 
 class Server(object):
@@ -88,4 +88,7 @@ class Server(object):
 
 if __name__ == '__main__':
     srv = Server()
-    srv.start()
+    if os.environ.get('DEBUG') is None:
+        srv.startDaemon()
+    else:
+        srv.start()
