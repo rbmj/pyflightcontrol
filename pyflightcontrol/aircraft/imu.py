@@ -23,7 +23,7 @@ class IMU(object):
         self.accel = [0, 0, 1]
         self.gyro = [0, 0, 0]
         self.mag = [0, 0, 0]
-        self._mode = ''
+        self.mode = 0
 
     def sync(self):
         self._dev.write(b'#sxy')
@@ -40,7 +40,7 @@ class IMU(object):
 
     def update(self):
         if DEBUG_QUAT:
-            self._mode = ord(self._dev.read(1))
+            self.mode = ord(self._dev.read(1))+1
         data = self._dev.read(4*4)
         self.attitude.do_set(*struct.unpack('<ffff', data))
         data = self._dev.read(3*4)

@@ -16,7 +16,7 @@ class imu_thread(threading.Thread):
     def run(self):
         while True:
             self.imu.update()
-            self.parent.set_attitude(self.imu.attitude)
+            self.parent.set_attitude(self.imu.attitude, self.imu.mode)
             self.parent.set_imu(
                     list(self.imu.accel),
                     list(self.imu.gyro),
@@ -58,9 +58,10 @@ class Server(pyflightcontrol.system.RpcServer):
         self.t_atmos = atmos_thread(self)
         self.t_atmos.start()
 
-    def set_attitude(self, quat):
+    def set_attitude(self, quat, mode=0):
         with self.lock:
             self.attitude.do_setq(quat)
+            self._quatmode = mode
 
     def set_imu(self, accel, gyro, mag):
         with self.lock:
@@ -91,6 +92,8 @@ class Server(pyflightcontrol.system.RpcServer):
             pkt.magneto.mz = self.mag[2]
             pkt.static = self.p
             pkt.temp = self.T
+            if self._quatmode != 0:
+                pkt.ahrs.mode = self._quatmode
         return pkt
 
 class Client(pyflightcontrol.system.RpcClient):

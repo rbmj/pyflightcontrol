@@ -9,6 +9,7 @@ message quaternion {
     float ex = 2;
     float ey = 3;
     float ez = 4;
+    int32 mode = 50;
 }
 
 message load_factor {
