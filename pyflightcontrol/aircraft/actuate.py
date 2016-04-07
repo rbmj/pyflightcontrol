@@ -18,6 +18,12 @@ Protocol = pyflightcontrol.system.RpcProtocol('actuate',
 
 class Server(pyflightcontrol.system.RpcServer):
     def __init__(self):
+        protocol = Protocol
+        protocol.addAction('setvals', self.handleSetvals)
+        protocol.addAction('getvals', self.handleGetvals)
+        super().__init__(protocol)
+
+    def post_init(self):
         self.aileron = 0.0
         self.elevator = 0.0
         self.rudder = 0.0
@@ -25,10 +31,6 @@ class Server(pyflightcontrol.system.RpcServer):
         self.lock = threading.Lock()
         self.ctrl = Maestro.createMicro()
         self._doSet()
-        protocol = Protocol
-        protocol.addAction('setvals', self.handleSetvals)
-        protocol.addAction('getvals', self.handleGetvals)
-        super().__init__(protocol)
 
     def _doSet(self):
         with self.lock:

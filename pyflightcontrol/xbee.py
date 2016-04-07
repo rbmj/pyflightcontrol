@@ -1,4 +1,5 @@
 from usb import core
+from google.protobuf.message import DecodeError
 import serial
 import struct
 import enum
@@ -42,7 +43,10 @@ class XBee(object):
         l = struct.unpack('!H', self._dev.read(2))[0]
         buf = self._dev.read(l)
         pkt = protobuf()
-        pkt.ParseFromString(buf)
+        try:
+            pkt.ParseFromString(buf)
+        except DecodeError:
+            pkt = None #FIXME: silently drop
         # Need to resynchronize now that we've messed with things
         self._state = XBee.State.SYNC
         self._buf = XBee.BUFINIT
@@ -71,8 +75,12 @@ class XBee(object):
                 self._buf = self._buf + self._dev.read(readLen)
                 if len(self._buf) == self._pktlen:
                     pkt = protobuf()
-                    pkt.ParseFromString(self._buf)
-                    cb(pkt)
+                    try:
+                        pkt.ParseFromString(self._buf)
+                    except DecodeError:
+                        pass #FIXME: silently drop
+                    else:
+                        cb(pkt)
                     self._state = XBee.State.SYNC
                     self._buf = XBee.BUFINIT
         except:

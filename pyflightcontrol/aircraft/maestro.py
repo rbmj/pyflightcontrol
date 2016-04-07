@@ -26,7 +26,7 @@ class Maestro:
     # communication channel.
     def __init__(self, ttyStr):
         # Open the command port
-        self.usb = serial.Serial(ttyStr)
+        self.usb = serial.Serial(ttyStr, 57600)
         # Command lead-in and device 12 are sent for each Pololu serial commands.
         self.PololuCmd = chr(0xaa) + chr(0xc)
         # Track target position for each servo. The function isMoving() will

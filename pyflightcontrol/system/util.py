@@ -13,7 +13,7 @@ def sock_recvall(sock, n):
 
 def receiveBuffer(protobuf, sock):
     msg = sock_recvall(sock, 2)
-    if msg[0] == 0xFF and msg[1] == 0xFF:
+    if msg is None or (msg[0] == 0xFF and msg[1] == 0xFF):
         return False
     l = struct.unpack('!H', msg)[0]
     msg = sock_recvall(sock, l)
