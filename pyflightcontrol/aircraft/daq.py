@@ -7,44 +7,32 @@ import time
 from .mpl3115a2 import MPL3115A2
 from .imu import IMU
 
-class daq_vars(object):
-    def __init__(self):
-        self.p = 2117.0
-        self.T = 460+50.0
-        self.attitude = pyflightcontrol.angle.Quaternion(0, 1, 0, 0)
-        self.load = [0., 0., 1.]
-        self.rot = [0., 0., 0.]
-        self.mag = [0., 0., 0.]
-        self.lock = threading.Lock()
-
 class imu_thread(threading.Thread):
-    def __init__(self, vars_out):
-        self._vars = vars_out
-        self.imu = IMU.create()
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
+        self.imu = IMU.create()
 
     def run(self):
         while True:
             self.imu.update()
-            with self._vars.lock:
-                self._vars.attitude.do_setq(self.imu.attitude)
-                self._vars.load = list(self.imu.accel)
-                self._vars.rot = list(self.imu.gyro)
-                self._vars.mag = list(self.imu.mag)
+            self.parent.set_attitude(self.imu.attitude)
+            self.parent.set_imu(
+                    list(self.imu.accel),
+                    list(self.imu.gyro),
+                    list(self.imu.mag))
 
 class atmos_thread(threading.Thread):
-    def __init__(self, vars_out):
-        self._vars = vars_out
-        self.dev = MPL3115A2()
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
+        self.dev = MPL3115A2()
     
     def run(self):
         while True:
             self.dev.poll()
-            with self._vars.lock:
-                self._vars.p = self.dev.pressure
-                self._vars.T = self.dev.temperature
-            time.sleep(0.005)
+            self.parent.set_atmos(self.dev.pressure, self.dev.temperature)
+            time.sleep(0.01)
 
 Protocol = pyflightcontrol.system.RpcProtocol('daq',
         pyflightcontrol.ports.tcpPort('daq'),
@@ -53,33 +41,56 @@ Protocol = pyflightcontrol.system.RpcProtocol('daq',
 
 class Server(pyflightcontrol.system.RpcServer):
     def __init__(self):
-        self._vars = daq_vars()
-        t_imu = imu_thread(self._vars)
-        t_imu.start()
-        t_atmos = atmos_thread(self._vars)
-        t_atmos.start()
         protocol = Protocol
         protocol.addAction('measure', self.handleMeasure)
         super().__init__(protocol)
 
+    def post_init(self):
+        self.p = 2117.0
+        self.T = 460+50.0
+        self.attitude = pyflightcontrol.angle.Quaternion(0, 1, 0, 0)
+        self.load = [0., 0., 1.]
+        self.rot = [0., 0., 0.]
+        self.mag = [0., 0., 0.]
+        self.lock = threading.Lock()
+        self.t_imu = imu_thread(self)
+        self.t_imu.start()
+        self.t_atmos = atmos_thread(self)
+        self.t_atmos.start()
+
+    def set_attitude(self, quat):
+        with self.lock:
+            self.attitude.do_setq(quat)
+
+    def set_imu(self, accel, gyro, mag):
+        with self.lock:
+            self.load = accel
+            self.rot = gyro
+            self.mag = mag
+
+    def set_atmos(self, pressure, temperature):
+        with self.lock:
+            self.p = pressure
+            self.T = temperature
+
     def handleMeasure(self, flag, timestamp):
         pkt = pyflightcontrol.proto.sensor_measurement()
-        with self._vars.lock:
-            pkt.ahrs.e0 = self._vars.attitude.e0
-            pkt.ahrs.ex = self._vars.attitude.ex
-            pkt.ahrs.ey = self._vars.attitude.ey
-            pkt.ahrs.ez = self._vars.attitude.ez
-            pkt.accel.nx = self._vars.load[0]
-            pkt.accel.ny = self._vars.load[1]
-            pkt.accel.nz = self._vars.load[2]
-            pkt.gyro.p = self._vars.rot[0]
-            pkt.gyro.q = self._vars.rot[1]
-            pkt.gyro.r = self._vars.rot[2]
-            pkt.magneto.mx = self._vars.mag[0]
-            pkt.magneto.my = self._vars.mag[1]
-            pkt.magneto.mz = self._vars.mag[2]
-            pkt.static = self._vars.p
-            pkt.temp = self._vars.T
+        with self.lock:
+            pkt.ahrs.e0 = float(self.attitude.e0)
+            pkt.ahrs.ex = float(self.attitude.ex)
+            pkt.ahrs.ey = float(self.attitude.ey)
+            pkt.ahrs.ez = float(self.attitude.ez)
+            pkt.accel.nx = self.load[0]
+            pkt.accel.ny = self.load[1]
+            pkt.accel.nz = self.load[2]
+            pkt.gyro.p = self.rot[0]
+            pkt.gyro.q = self.rot[1]
+            pkt.gyro.r = self.rot[2]
+            pkt.magneto.mx = self.mag[0]
+            pkt.magneto.my = self.mag[1]
+            pkt.magneto.mz = self.mag[2]
+            pkt.static = self.p
+            pkt.temp = self.T
         return pkt
 
 class Client(pyflightcontrol.system.RpcClient):

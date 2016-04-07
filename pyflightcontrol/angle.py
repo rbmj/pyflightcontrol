@@ -49,7 +49,7 @@ class Euler(object):
 
 class Quaternion(object):
     def __init__(self, e0, ex, ey, ez):
-        self._quat = numpy.array([e0, ex, ey, ez])
+        self._quat = numpy.array([e0, ex, ey, ez], dtype=float)
 
     def __mul__(self, q):
         return Quaternion(
@@ -95,10 +95,22 @@ class Quaternion(object):
 
     def euler(self):
         q = Quaternion.square(self)
-        roll = math.atan2(2*(self.e0*self.ex + self.ey*self.ez),
-                q.e0 + q.ez - q.ex - q.ey)
-        pitch = math.asin(2*(self.e0*self.ey - self.ex*self.ez))
-        bear = math.atan2(2*(self.e0*self.ez + self.ex*self.ey),
-                q.e0 + q.ex - q.ey - q.ez)
+        arg = 2*(self.e0*self.ey - self.ex*self.ez)
+        if arg >= 1.0:
+            pitch = math.pi/2
+            roll = 0
+            bear = -math.atan2(self.ex*self.ey - self.e0*self.ez,
+                    self.ex*self.ez + self.e0*self.ey)
+        elif arg <= -1.0:
+            pitch = -math.pi/2
+            roll = 0
+            bear = math.atan2(self.ex*self.ey - self.e0*self.ez,
+                    self.ex*self.ez + self.e0*self.ey)
+        else:
+            roll = math.atan2(2*(self.e0*self.ex + self.ey*self.ez),
+                    q.e0 + q.ez - q.ex - q.ey)
+            pitch = math.asin(arg)
+            bear = math.atan2(2*(self.e0*self.ez + self.ex*self.ey),
+                    q.e0 + q.ex - q.ey - q.ez)
         return Euler(roll, pitch, bear)
 
