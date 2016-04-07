@@ -31,6 +31,23 @@ GPSd doesn't autodetect these GPS chips, so you need to use
 ``gpsdctl add /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A8008ZLA-if00-port0``
 to add it.
 
+
+XBee:
+-------------
+
+Getting the xbees to run low latency requires a bit of configuration in
+XCTU.  The issue is that XBee tries to provide stream reliabilitly, and
+pays a fairly steep performance penalty to do so.  This is usually OK,
+but with a high frequency of traffic the latency combined with retransmits
+causes the communications channel to get saturated.
+
+Settings that need to get changed:
+ - RR (Unicast Retries): 0
+ - DH (Destination High): SH of peer
+ - DL (Destination Low): SL of peer
+ - TO (Transmit Options): C1
+ - BD (Baud Rate): 115200
+
 RPi Setup:
 ------------
 
