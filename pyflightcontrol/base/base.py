@@ -35,10 +35,11 @@ class BaseStation(object):
                     pkt.manual.sensors.ahrs.ex,
                     pkt.manual.sensors.ahrs.ey,
                     pkt.manual.sensors.ahrs.ez)
-            print('\tAttitude {:2.1f}:{:2.1f}:{:2.1f}'.format(
+            print('\tAttitude {:2.1f}:{:2.1f}:{:2.1f} mode {}'.format(
                 self.acstate.euler.pitch_d,
                 self.acstate.euler.roll_d,
-                self.acstate.euler.bearing_d))
+                self.acstate.euler.bearing_d,
+                pkt.manual.sensors.ahrs.mode))
             self.acstate.p = pkt.manual.sensors.static
             self.acstate.T = pkt.manual.sensors.temp
 
