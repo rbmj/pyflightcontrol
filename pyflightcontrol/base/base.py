@@ -9,6 +9,7 @@ import asyncio
 import pygame
 from usb import core
 import signal
+import sys
 
 #FIXME: full servo deflection, no calibration.  should be done on server
 rudder_range = 90
@@ -20,8 +21,10 @@ class BaseStation(object):
         self.xbee = pyflightcontrol.XBee(pyflightcontrol.XBee.findExplorerDev())
         self.acstate = pyflightcontrol.AircraftState()
         devs = pyflightcontrol.base.Joystick.autodetect()
-        self.stick = devs['stick'][0]
-        self.rudder = devs['rudder'][0]
+        t = devs['stick']
+        self.stick = t[0] if t else None
+        t = devs['rudder']
+        self.rudder = t[0] if t else None
         self._last_update = None
 
     def handleDownlink(self, pkt):
@@ -54,10 +57,16 @@ class BaseStation(object):
     def uplink_loop(self):
         while True:
             pkt = pyflightcontrol.proto.command_uplink()
-            pkt.manual.d_a = self.stick.getX()*2.0*aileron_range/256 - aileron_range
-            pkt.manual.d_e = self.stick.getY()*2.0*elevator_range/256 - elevator_range
-            pkt.manual.d_r = self.rudder.getX()*2.0*rudder_range/256 - rudder_range
-            pkt.manual.motor_pwr = self.stick.getZ()*100.0/256
+            if not (self.stick is None):
+                self.acstate.aileron = self.stick.getX()*2.0*aileron_range/256 - aileron_range
+                pkt.manual.d_a = self.acstate.aileron
+                self.acstate.elevator = self.stick.getY()*2.0*elevator_range/256 - elevator_range
+                pkt.manual.d_e = self.acstate.elevator
+                self.acstate.motor = self.stick.getZ()*100.0/256
+                pkt.manual.motor_pwr = self.acstate.motor
+            if not (self.rudder is None):
+                self.acstate.rudder = self.rudder.getX()*2.0*rudder_range/256 - rudder_range
+                pkt.manual.d_r = self.acstate.rudder
             # Write Control Packet
             try:
                 self.xbee.writePkt(pkt)
@@ -75,7 +84,7 @@ class BaseStation(object):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    raise
+                    sys.exit(0)
             # Render display
             surf = pfd.render(self.acstate)
             screen.blit(surf, (0, 0))
@@ -86,11 +95,24 @@ class BaseStation(object):
         asyncio.async(self.render_loop())
         asyncio.async(self.uplink_loop())
         asyncio.async(self.downlink_loop())
-        self.stick.register()
-        self.rudder.register()
+        if self.stick:
+            self.stick.register()
+        if self.rudder:
+            self.rudder.register()
+
+    def exception_handler(self, loop, context):
+        #FIXME: This doesn't actually reap the errors, why?
+        #       still get exception traces on exit
+        if isinstance(context.get('exception'), SystemExit):
+            return
+        loop.default_exception_handler(context)
 
 if __name__ == '__main__':
     b = BaseStation()
     b.register()
     loop = asyncio.get_event_loop()
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    except SystemExit:
+        loop.close()
+        pass

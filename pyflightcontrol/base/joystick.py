@@ -80,7 +80,8 @@ class Joystick(object):
         btns = [len(c.get(evdev.ecodes.EV_KEY, [])) for c in caps]
         axes = [len(c.get(evdev.ecodes.EV_ABS, [])) for c in caps]
         data = [x for x in zip(devs, caps, btns, axes)]
-        sticks = filter(lambda x: x[3] >= 3 and x[2] > 1, data)
+        sticks = filter(lambda x: x[3] >= 3 and x[3] <= 6 and x[2] > 1,
+                data)
         out['stick'] = [cls(x[0]) for x in sticks]
         rudders = filter(lambda x: x[3] >= 1 and x[2] == 0, data)
         out['rudder'] = [cls(x[0]) for x in rudders]

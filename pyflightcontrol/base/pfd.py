@@ -16,14 +16,15 @@ class PFD(object):
 
     def render(self, state):
         surf = pygame.Surface((self._width, self._height))
-        self._render_attitude(surf, state.pitch, state.roll)
+        self._render_attitude(surf, state.pitch, state.roll,
+                state.aileron, state.elevator, state.rudder)
         self._render_compass(surf, state.bearing)
         self._render_airspeed(surf, state.airspeed)
         self._render_altitude(surf, state.pressure_altitude)
         return surf
 
-    def _render_attitude(self, surf, pitch, roll):
-        ind = self._attitude.render(pitch, roll)
+    def _render_attitude(self, surf, pitch, roll, da, de, dr):
+        ind = self._attitude.render(pitch, roll, da, de, dr)
         surf.blit(ind, (0, 0))
 
     def _render_altitude(self, surf, alt):

@@ -42,12 +42,18 @@ def _makecoord(x, y):
 
 def _makeroll(phi):
     phi = phi*math.pi/180 # radian conversion
-    return numpy.matrix([[math.cos(phi), -math.sin(phi), 0],
-                         [math.sin(phi), math.cos(phi) , 0],
+    return numpy.matrix([[math.cos(phi),  math.sin(phi), 0],
+                         [-math.sin(phi), math.cos(phi), 0],
                          [0            , 0             , 1]])
 
 def _makepitch(theta):
     return numpy.matrix([[1, 0, 0], [0, 1, -theta], [0, 0, 1]])
+
+def _maketrans(theta, phi):
+    return numpy.matrix([[1, 0, phi], [0, 1, theta], [0, 0, 1]])
+
+def _makescale(factor):
+    return numpy.matrix([[factor, 0, 0], [0, factor, 0], [0, 0, 1]])
 
 def _gettheta(p, offx=0, offy=0):
     return math.atan2(p[1] + offy, p[0] + offx)
@@ -78,6 +84,22 @@ class AttitudeIndicator(object):
             major = not major
         self._horizon = (_makecoord(-self._widthfov, 0),
                          _makecoord(self._widthfov, 0))
+        self._deflect_center = _makecoord(0, 0)
+        self._deflect_radius = self._widthfov*0.05
+        self._deflect_lines = [
+                [
+                    _makecoord(self._deflect_radius, 0),
+                    _makecoord(self._deflect_radius*2, 0)
+                ],
+                [
+                    _makecoord(-self._deflect_radius, 0),
+                    _makecoord(-2*self._deflect_radius, 0)
+                ],
+                [
+                    _makecoord(0, self._deflect_radius),
+                    _makecoord(0, 2*self._deflect_radius)
+                ]
+        ]
     
     def _drawpitchline(self, xform, surf, i, pitchcolor, roll):
         (start, end, p, txtl) = self._pitchlines[i]
@@ -103,7 +125,7 @@ class AttitudeIndicator(object):
         self._fontobj.render_to(surf, txtl, txt, pitchcolor,
                 rotation=int(roll), size=self._pitchtextsz)
     
-    def render(self, pitch, roll):
+    def render(self, pitch, roll, d_a, d_e, d_r):
         surf = pygame.Surface((self._width, self._height))
         # Artificial horizon colors
         skycolor = (10, 112, 184)
@@ -188,4 +210,14 @@ class AttitudeIndicator(object):
         pygame.draw.line(surf, referencecolor,
             (self._width/2 + 3*arrow_width, self._height/2),
             (self._width/2 + 1.5*arrow_width, self._height/2), 5)
+        
+        # Draw control deflection reference
+        scale = 0.15
+        aileron_scale = 0.5
+        xform_deflect = _makeroll(d_a*aileron_scale)
+        xform_deflect = _maketrans(d_e*scale, d_r*scale)*xform_deflect
+        xform_deflect = transform*xform_deflect
+        xform_deflect = _makescale(self._scalefactor)*xform_deflect
+        lines = [[(xform_deflect*pt).astype(numpy.int32) for pt in line]
+                for line in self._deflect_lines] 
         return surf

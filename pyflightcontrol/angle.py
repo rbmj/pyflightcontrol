@@ -29,7 +29,7 @@ class Euler(object):
     def bearing_d(self):
         b = self.bearing*180/math.pi
         if b < 0:
-            return b + 180
+            return b + 360
         return b
 
     @property
