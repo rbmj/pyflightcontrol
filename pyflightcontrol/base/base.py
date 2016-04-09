@@ -31,18 +31,18 @@ class BaseStation(object):
         self._last_update = pyflightcontrol.proto.Timestamp()
         self._last_update.MergeFrom(pkt.time)
         pkt_type = pkt.WhichOneof('downlink_type')
-        print('received downlink packet: {} bytes'.format(pkt.ByteSize()))
+        #print('received downlink packet: {} bytes'.format(pkt.ByteSize()))
         if pkt_type == 'manual':
             self.acstate.quaternion = pyflightcontrol.angle.Quaternion(
                     pkt.manual.sensors.ahrs.e0,
                     pkt.manual.sensors.ahrs.ex,
                     pkt.manual.sensors.ahrs.ey,
                     pkt.manual.sensors.ahrs.ez)
-            print('\tAttitude {:2.1f}:{:2.1f}:{:2.1f} mode {}'.format(
-                self.acstate.euler.pitch_d,
-                self.acstate.euler.roll_d,
-                self.acstate.euler.bearing_d,
-                pkt.manual.sensors.ahrs.mode))
+            #print('\tAttitude {:2.1f}:{:2.1f}:{:2.1f} mode {}'.format(
+            #    self.acstate.euler.pitch_d,
+            #    self.acstate.euler.roll_d,
+            #    self.acstate.euler.bearing_d,
+            #    pkt.manual.sensors.ahrs.mode))
             self.acstate.p = pkt.manual.sensors.static
             self.acstate.T = pkt.manual.sensors.temp
 
@@ -62,11 +62,14 @@ class BaseStation(object):
                 pkt.manual.d_a = self.acstate.aileron
                 self.acstate.elevator = self.stick.getY()*2.0*elevator_range/256 - elevator_range
                 pkt.manual.d_e = self.acstate.elevator
-                self.acstate.motor = self.stick.getZ()*100.0/256
+                z = 255 - self.stick.getZ()
+                self.acstate.motor = z*100.0/256
                 pkt.manual.motor_pwr = self.acstate.motor
             if not (self.rudder is None):
                 self.acstate.rudder = self.rudder.getX()*2.0*rudder_range/256 - rudder_range
                 pkt.manual.d_r = self.acstate.rudder
+            print('Sending {}:{}:{}:{}'.format(pkt.manual.d_a, pkt.manual.d_e,
+                pkt.manual.d_r, pkt.manual.motor_pwr))
             # Write Control Packet
             try:
                 self.xbee.writePkt(pkt)

@@ -87,4 +87,15 @@ class Joystick(object):
         out['rudder'] = [cls(x[0]) for x in rudders]
         return out
 
-
+if __name__ == '__main__':
+    devs = Joystick.autodetect()
+    stick = devs['stick'][0]
+    @asyncio.coroutine
+    def loop():
+        while True:
+            print('{}:{}:{}'.format(stick.getX(), stick.getY(), stick.getZ()))
+            yield from asyncio.sleep(0.1)
+    stick.register()
+    asyncio.async(loop())
+    events = asyncio.get_event_loop()
+    events.run_forever()
