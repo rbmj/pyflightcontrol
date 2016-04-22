@@ -23,6 +23,8 @@ class BaseStation(object):
         devs = pyflightcontrol.base.Joystick.autodetect()
         t = devs['stick']
         self.stick = t[0] if t else None
+        if not (self.stick is None):
+            self.stick.invertZ()
         t = devs['rudder']
         self.rudder = t[0] if t else None
         self._last_update = None
@@ -62,7 +64,7 @@ class BaseStation(object):
                 pkt.manual.d_a = self.acstate.aileron
                 self.acstate.elevator = self.stick.getY()*2.0*elevator_range/256 - elevator_range
                 pkt.manual.d_e = self.acstate.elevator
-                z = 255 - self.stick.getZ()
+                z = self.stick.getZ()
                 self.acstate.motor = z*100.0/256
                 pkt.manual.motor_pwr = self.acstate.motor
             if not (self.rudder is None):

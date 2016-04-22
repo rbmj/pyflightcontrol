@@ -8,12 +8,14 @@ class Joystick(object):
         else:
             self._dev = dev
         self._axes = {}
+        self._invert = {}
         self._buttons = {}
         self._handlers = {}
         for btn in self.enumerateButtons(resolve=False):
             self._buttons[btn] = 0
         for ax in self.enumerateAxes(resolve=False):
             self._axes[ax] = 0.0
+            self._invert[ax] = False
 
     @asyncio.coroutine
     def _pump(self):
@@ -21,7 +23,10 @@ class Joystick(object):
             events = yield from self._dev.async_read()
             for event in events:
                 if event.type == evdev.ecodes.EV_ABS:
-                    self._axes[event.code] = event.value
+                    val = event.value
+                    if self._invert[event.code]:
+                        val = 255 - val
+                    self._axes[event.code] = val
                 elif event.type == evdev.ecodes.EV_KEY:
                     self._buttons[event.code] = event.value
                     h = self._handlers.get(event.value)
@@ -33,6 +38,20 @@ class Joystick(object):
 
     def addButtonHandler(self, h, code):
         self._handlers[code] = h
+
+    def setAxes(self, x, y, z):
+        self._axes[evdev.ecodes.ABS_X] = x
+        self._axes[evdev.ecodes.ABS_Y] = y
+        self._axes[evdev.ecodes.ABS_Z] = z
+
+    def invertX(self, val=True):
+        self._invert[evdev.ecodes.ABS_X] = val
+
+    def invertY(self, val=True):
+        self._invert[evdev.ecodes.ABS_Y] = val
+
+    def invertZ(self, val=True):
+        self._invert[evdev.ecodes.ABS_Z] = val
 
     def getX(self):
         return self._axes[evdev.ecodes.ABS_X]
