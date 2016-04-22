@@ -5,7 +5,7 @@ import threading
 
 def getPWM(deg):
     # units are in quarter microseconds, with a range from 4000-8000
-    return 4000+int((90.0 + (deg/180.0))*4000)
+    return 4000+int(4000*(deg+90)/180.0)
 
 def getMotor(percent):
     # units again, quarter microseconds, range 4400 to 7600
