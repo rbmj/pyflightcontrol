@@ -10,10 +10,10 @@ stmp-install: pyflightcontrol/proto/pyflightcontrol_pb2.py
 	touch stmp-install
 
 install-base: stmp-install
-	install -D liberation_mono.ttf /usr/local/share/pyflightcontrol -m 644
+	install -D liberation_mono.ttf -t /usr/local/share/pyflightcontrol/ -m 644
 
 install-aircraft: stmp-install
-	install -D service/*.service /etc/systemd/system -m 644
+	install -D service/*.service -t /etc/systemd/system/ -m 644
 	systemctl daemon-reload
 
 clean:
