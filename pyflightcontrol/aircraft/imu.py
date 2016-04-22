@@ -4,7 +4,9 @@ import serial
 import struct
 import time
 
+quat = pyflightcontrol.angle.Quaternion
 DEBUG_QUAT = True
+IMU_ORIENT = quat(0, 1, 0, 0)
 
 class IMU(object):
     def __init__(self, tty):
@@ -19,7 +21,7 @@ class IMU(object):
         self._dev.write(b'#oqb')
         self._dev.write(b'#oqb')
         self.sync()
-        self.attitude = pyflightcontrol.angle.Quaternion(0, 1, 0, 0)
+        self.attitude = quat(0, 1, 0, 0)
         self.accel = [0, 0, 1]
         self.gyro = [0, 0, 0]
         self.mag = [0, 0, 0]
@@ -49,6 +51,13 @@ class IMU(object):
         self.mag = list(struct.unpack('<fff', data))
         data = self._dev.read(3*4)
         self.gyro = list(struct.unpack('<fff', data))
+        self._reorient()
+
+    def _reorient(self):
+        self.attitude = self.attitude.rotateBy(IMU_ORIENT)
+        self.accel = quat.fromVec(self.accel).rotateBy(IMU_ORIENT).vector
+        self.gyro = quat.fromVec(self.gyro).rotateBy(IMU_ORIENT).vector
+        self.mag = quat.fromVec(self.mag).rotateBy(IMU_ORIENT).vector
  
     @classmethod
     def create(cls):
@@ -63,7 +72,7 @@ if __name__ == '__main__':
             roll = 180/math.pi * attitude.roll
             yaw = 180/math.pi * attitude.bearing
             print('{}Pitch {:2.3f}\tRoll {:2.3f}\tYaw {:2.3f}'.format(
-                    imu._mode, pitch, roll, yaw))
+                    imu.mode, pitch, roll, yaw))
             #print('Accel {:2.3f}\t{:2.3f}\t{:2.3f}'.format(*imu.accel))
             #print('Gyro {:2.3f}\t{:2.3f}\t{:2.3f}'.format(*imu.gyro))
             #print('Mag {:2.3f}\t{:2.3f}\t{:2.3f}'.format(*imu.mag))

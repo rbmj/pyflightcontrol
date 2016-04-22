@@ -50,6 +50,10 @@ class Euler(object):
 class Quaternion(object):
     def __init__(self, e0, ex, ey, ez):
         self._quat = numpy.array([e0, ex, ey, ez], dtype=float)
+    
+    @classmethod
+    def fromVec(cls, vec):
+        return cls(0, vec[0], vec[1], vec[2])
 
     def __mul__(self, q):
         return Quaternion(
@@ -73,6 +77,14 @@ class Quaternion(object):
     def e0(self):
         return self._quat[0]
 
+    @property
+    def vector(self):
+        return [self._quat[1], self._quat[2], self._quat[3]]
+
+    @property
+    def real(self):
+        return self.e0
+    
     def do_set(self, e0, ex, ey, ez):
         self._quat = numpy.array([e0, ex, ey, ez])
 
@@ -92,6 +104,10 @@ class Quaternion(object):
     
     def normalize(self):
         self._quat = self._quat/numpy.linalg.norm(self._quat)
+
+    def rotateBy(self, other):
+        return other*self*(other.conj)
+
 
     def euler(self):
         q = Quaternion.square(self)
