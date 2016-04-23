@@ -38,3 +38,7 @@ def tcpTuple(name):
     x = tcp[name].split(':')
     return (x[0], int(x[1]))
 
+# deflection range
+elevator_range = [-30, 30]
+aileron_range = [-30, 30]
+rudder_range = [-30, 30]

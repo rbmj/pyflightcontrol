@@ -54,7 +54,7 @@ class IMU(object):
         self._reorient()
 
     def _reorient(self):
-        self.attitude = self.attitude.rotateBy(IMU_ORIENT)
+        self.attitude = self.attitude*IMU_ORIENT
         self.accel = quat.fromVec(self.accel).rotateBy(IMU_ORIENT).vector
         self.gyro = quat.fromVec(self.gyro).rotateBy(IMU_ORIENT).vector
         self.mag = quat.fromVec(self.mag).rotateBy(IMU_ORIENT).vector

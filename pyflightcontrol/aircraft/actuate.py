@@ -1,6 +1,7 @@
 import pyflightcontrol
 from usb import core
 from .maestro import Maestro
+from .servo_limits import limits
 import threading
 
 def getPWM(deg):
@@ -10,6 +11,15 @@ def getPWM(deg):
 def getMotor(percent):
     # units again, quarter microseconds, range 4400 to 7600
     return 4400+int((percent/100.)*3200)
+
+def getSurf(surf, deflect):
+    lim = limits[surf]
+    setting = 0
+    if deflect > 0:
+        setting = (deflect/lim[3])*(lim[1]-lim[0])+lim[0]
+    else:
+        setting = (deflect/lim[4])*(lim[2]-lim[0])+lim[0]
+    return getPWM(setting)
 
 Protocol = pyflightcontrol.system.RpcProtocol('actuate',
         pyflightcontrol.ports.tcpPort('actuate'),
@@ -35,13 +45,13 @@ class Server(pyflightcontrol.system.RpcServer):
     def _doSet(self):
         with self.lock:
             self.ctrl.setTarget(pyflightcontrol.ports.servo['aileron_r'],
-                    getPWM(self.aileron))
+                    getSurf('aileron_r', self.aileron))
             self.ctrl.setTarget(pyflightcontrol.ports.servo['aileron_l'],
-                    getPWM(-self.aileron))
+                    getSurf('aileron_l', self.aileron))
             self.ctrl.setTarget(pyflightcontrol.ports.servo['elevator'],
-                    getPWM(self.elevator))
+                    getSurf('elevator', self.elevator))
             self.ctrl.setTarget(pyflightcontrol.ports.servo['rudder'],
-                    getPWM(self.rudder))
+                    getSurf('rudder', self.rudder))
             self.ctrl.setTarget(pyflightcontrol.ports.servo['motor_pwr'],
                     getMotor(self.motor))
 

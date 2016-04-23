@@ -40,11 +40,15 @@ class Euler(object):
         c = math.cos
         s = math.sin
         v = self._vec / 2
+        v[1] = -v[1] #FIXME this fixes pitch error
         return Quaternion(
                 c(v[0])*c(v[1])*c(v[2]) + s(v[0])*s(v[1])*s(v[2]),
                 s(v[0])*c(v[1])*c(v[2]) + c(v[0])*s(v[1])*s(v[2]),
                 c(v[0])*s(v[1])*c(v[2]) + s(v[0])*c(v[1])*s(v[2]),
                 c(v[0])*c(v[1])*s(v[2]) + s(v[0])*s(v[1])*c(v[2]))
+
+    def __str__(self):
+        return '{}:{}:{}'.format(self.pitch_d, self.roll_d, self.bearing_d)
 
 
 class Quaternion(object):
@@ -107,7 +111,6 @@ class Quaternion(object):
 
     def rotateBy(self, other):
         return other*self*(other.conj)
-
 
     def euler(self):
         q = Quaternion.square(self)
