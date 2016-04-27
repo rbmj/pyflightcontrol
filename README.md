@@ -1,11 +1,30 @@
 pyflightcontrol
 ===============
 
+Usage
+---------------
+
+Build/Install with (as root):
+
+    # make install-{base,aircraft}
+
+Aircraft services will start on boot.  All logs are passed to syslog
+and can be directed by configuring your local syslog service.
+
+To run the base station software, ensure that the flight controller is
+connected to the computer, and run (as root):
+
+    # python3 -m pyflightcontrol.base.base
+
+Notes
+----------------
+
 License:  This project is licensed under the Apache License, version
 2.0 (see LICENSE.md).  Font resources are included with the project
 under the terms of the SIL Open Font License (see LICENSE.FONT.md).
 
-Dependencies:
+Dependencies:  The below are the major dependencies - see below for a
+complete list and installation instructions.
 
  - Python >= 3.4
  - Google Protocol Buffers & Python Bindings
