@@ -133,6 +133,7 @@ class AttitudeIndicator(object):
         referencecolor = (255, 255, 0)
         pitchcolor = (255, 255, 255)
         # Make artificial horizon transform matrix
+        roll = -roll
         transform = _makeroll(roll)*_makepitch(pitch)
 
         # Transform points and determine intersections

@@ -128,6 +128,9 @@ class AircraftState(object):
     @qnh.setter
     def qnh(self, val):
         self._qnh = val/AircraftState.qnhconv
+
+    def setrawqnh(self, val):
+        self._qnh = val
     
     @property
     def quaternion(self):

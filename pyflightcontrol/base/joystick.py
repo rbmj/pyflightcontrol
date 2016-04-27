@@ -2,7 +2,7 @@ import asyncio, evdev, time
 
 class Joystick(object):
     from evdev import ecodes
-    def __init__(self, dev):
+    def __init__(self, dev, verb=False):
         if isinstance(dev, str):
             self._dev = evdev.InputDevice(dev)
         else:
@@ -16,6 +16,7 @@ class Joystick(object):
         for ax in self.enumerateAxes(resolve=False):
             self._axes[ax] = 0.0
             self._invert[ax] = False
+        self._verbose = verb
 
     @asyncio.coroutine
     def _pump(self):
@@ -29,9 +30,12 @@ class Joystick(object):
                     self._axes[event.code] = val
                 elif event.type == evdev.ecodes.EV_KEY:
                     self._buttons[event.code] = event.value
-                    h = self._handlers.get(event.value)
-                    if h:
+                    h = self._handlers.get(event.code)
+                    if h and event.value:
                         h()
+                    if self._verbose:
+                        print('{}:{}'.format(evdev.ecodes.BTN[event.code], event.value))
+
 
     def register(self):
         return asyncio.async(self._pump())
@@ -61,6 +65,24 @@ class Joystick(object):
 
     def getZ(self):
         return self._axes[evdev.ecodes.ABS_Z]
+
+    def getRX(self):
+        return self._axes[evdev.ecodes.ABS_RX]
+
+    def getRY(self):
+        return self._axes[evdev.ecodes.ABS_RY]
+
+    def getRZ(self):
+        return self._axes[evdev.ecodes.ABS_RZ]
+    
+    def getHAT0X(self):
+        return self._axes[evdev.ecodes.ABS_HAT0X]
+
+    def getHAT0Y(self):
+        return self._axes[evdev.ecodes.ABS_HAT0Y]
+
+    def getThrottle(self):
+        return self._axes[evdev.ecodes.ABS_THROTTLE]
 
     def getAxis(self, code):
         return self._axes[code]
@@ -107,12 +129,13 @@ class Joystick(object):
         return out
 
 if __name__ == '__main__':
-    devs = Joystick.autodetect()
-    stick = devs['stick'][0]
+    #devs = Joystick.autodetect()
+    #stick = devs['stick'][0]
+    stick = Joystick(evdev.util.list_devices()[0], True)
     @asyncio.coroutine
     def loop():
         while True:
-            print('{}:{}:{}'.format(stick.getX(), stick.getY(), stick.getZ()))
+            print('{}:{}:{}:{}'.format(stick.getX(), stick.getY(), stick.getRZ(), stick.getZ()))
             yield from asyncio.sleep(0.1)
     stick.register()
     asyncio.async(loop())
